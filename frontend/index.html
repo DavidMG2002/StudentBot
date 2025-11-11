@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DocuBot - Asistente Inteligente</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <div class="logo">
+                <span class="icon">📚</span>
+                <h1>DocuBot</h1>
+            </div>
+            <p class="subtitle">Asistente Inteligente de Documentos con IA (TXT & PDF)</p>
+        </header>
+
+        <!-- Status Bar -->
+        <div id="statusBar" class="status-bar">
+            <span id="statusIcon">⚠️</span>
+            <span id="statusText">Sistema no inicializado</span>
+            <span id="docCount" class="doc-count">0 documentos</span>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <div class="card">
+                    <h3>⚙️ Configuración</h3>
+                    
+                    <div class="form-group">
+                        <label>📁 Carpeta de documentos:</label>
+                        <input type="text" id="carpeta" value="documentos" class="input">
+                    </div>
+
+                    <div class="form-group">
+                        <label>✂️ Tamaño de chunks:</label>
+                        <input type="range" id="tamanoChunk" min="100" max="500" value="300" class="slider">
+                        <span id="tamanoChunkValue">300</span> caracteres
+                    </div>
+
+                    <div class="form-group">
+                        <label>🔍 Resultados a buscar:</label>
+                        <input type="range" id="topK" min="1" max="5" value="3" class="slider">
+                        <span id="topKValue">3</span> chunks
+                    </div>
+
+                    <button id="btnCargar" class="btn btn-primary">
+                        🚀 Cargar Documentos
+                    </button>
+
+                    <div id="loadingCargar" class="loading" style="display: none;">
+                        <div class="spinner"></div>
+                        Procesando documentos...
+                    </div>
+
+                    <div id="cargarInfo" class="info-box" style="display: none;"></div>
+                </div>
+
+                <div class="card">
+                    <h3>📄 Documentos Disponibles</h3>
+                    <div id="listaDocumentos" class="documentos-lista">
+                        <p class="text-muted">Cargando lista...</p>
+                    </div>
+                    <button id="btnRefrescar" class="btn btn-secondary-small">
+                        🔄 Refrescar Lista
+                    </button>
+                </div>
+
+                <div class="card info">
+                    <h4>💡 Instrucciones</h4>
+                    <ol>
+                        <li>Coloca archivos <strong>.txt</strong> o <strong>.pdf</strong> en la carpeta <code>documentos/</code></li>
+                        <li>Haz clic en "Cargar Documentos"</li>
+                        <li>Espera a que se procesen los PDFs</li>
+                        <li>Escribe tu pregunta y presiona Enter</li>
+                    </ol>
+                </div>
+
+                <div class="card stats">
+                    <h4>📊 Estadísticas</h4>
+                    <div id="stats">
+                        <div class="stat-item">
+                            <span class="stat-label">Documentos TXT:</span>
+                            <span id="statTxt" class="stat-value">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Documentos PDF:</span>
+                            <span id="statPdf" class="stat-value">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Chunks totales:</span>
+                            <span id="statChunks" class="stat-value">0</span>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Chat Area -->
+            <main class="chat-area">
+                <div class="card chat-card">
+                    <h3>💬 Conversación</h3>
+                    
+                    <div id="chatMessages" class="chat-messages">
+                        <div class="message bot">
+                            <div class="message-header">
+                                <span class="avatar">🤖</span>
+                                <strong>DocuBot</strong>
+                                <span class="timestamp"></span>
+                            </div>
+                            <div class="message-content">
+                                ¡Hola! Soy DocuBot, tu asistente inteligente de documentos. 
+                                <br><br>
+                                Puedo leer y analizar archivos <strong>TXT</strong> y <strong>PDF</strong>. 
+                                Carga tus documentos en la carpeta indicada y haré preguntas sobre su contenido.
+                                <br><br>
+                                📚 <em>Soporto PDFs multipágina y documentos de texto</em>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="chat-input-container">
+                        <input 
+                            type="text" 
+                            id="inputPregunta" 
+                            placeholder="Escribe tu pregunta aquí... (Presiona Enter)" 
+                            class="input chat-input"
+                            disabled
+                        >
+                        <button id="btnPreguntar" class="btn btn-send" disabled>
+                            🔍 Buscar
+                        </button>
+                    </div>
+
+                    <div id="loadingPregunta" class="loading" style="display: none;">
+                        <div class="spinner"></div>
+                        Procesando pregunta...
+                    </div>
+                </div>
+
+                <!-- Chunks Relevantes -->
+                <div id="chunksContainer" class="card chunks-card" style="display: none;">
+                    <h3>🔍 Información Encontrada</h3>
+                    <div id="chunksContent"></div>
+                </div>
+            </main>
+        </div>
+
+        <!-- Footer -->
+        <footer>
+            <p>🎓 Desarrollado para Tecnología en Desarrollo de Software</p>
+            <p class="text-muted">Arquitectura Multiagente • Sentence Transformers • FAISS • PyPDF2</p>
+            <p class="text-muted">Backend: Flask + Python | Frontend: HTML + CSS + JavaScript</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

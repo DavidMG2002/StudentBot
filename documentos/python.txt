@@ -1,0 +1,29 @@
+Python: Lenguaje de Programación de Alto Nivel
+
+Python es un lenguaje de programación interpretado, de alto nivel y de propósito general. Fue creado por Guido van Rossum y lanzado por primera vez en 1991. La filosofía de diseño de Python enfatiza la legibilidad del código con el uso notable de espacios en blanco significativos.
+
+Historia y Evolución
+Python fue concebido a finales de la década de 1980 por Guido van Rossum en el Centro de Matemáticas e Informática (CWI) en los Países Bajos como sucesor del lenguaje ABC. El nombre del lenguaje proviene del grupo de comedia británico Monty Python. Python 2.0 fue lanzado en 2000 y Python 3.0 en 2008, siendo esta última la versión actual.
+
+Características Principales
+Python es conocido por su sintaxis clara y legible, que permite a los programadores expresar conceptos en menos líneas de código que en lenguajes como C++ o Java. El lenguaje proporciona construcciones que permiten escribir programas claros tanto a pequeña como a gran escala.
+
+Aplicaciones Comunes
+Python es ampliamente utilizado en diversos campos:
+- Ciencia de datos y análisis estadístico
+- Machine Learning e Inteligencia Artificial
+- Desarrollo web (Django, Flask)
+- Automatización y scripting
+- Desarrollo de aplicaciones de escritorio
+- Programación científica y numérica
+
+Ventajas de Python
+Entre las principales ventajas se encuentran:
+1. Fácil de aprender y usar
+2. Gran cantidad de bibliotecas y frameworks
+3. Comunidad activa y extensa documentación
+4. Multiplataforma (Windows, Mac, Linux)
+5. Código abierto y gratuito
+
+Python en la Actualidad
+Hoy en día, Python es uno de los lenguajes más populares del mundo. Es utilizado por empresas gigantes como Google, Facebook, Netflix y NASA. Su popularidad continúa creciendo especialmente en áreas emergentes como ciencia de datos e inteligencia artificial.

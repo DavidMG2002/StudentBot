@@ -1,0 +1,11 @@
+venv/
+__pycache__/
+*.faiss
+*.bin
+*.pt
+*.pdf
+*.model
+*.pkl
+*.npy
+*.npz
+.DS_Store
