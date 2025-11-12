@@ -8,4 +8,5 @@ __pycache__/
 *.pkl
 *.npy
 *.npz
+*.txt
 .DS_Store
