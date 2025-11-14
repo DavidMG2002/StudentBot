@@ -30,7 +30,6 @@ const elements = {
 
 // Estado del sistema
 let sistemaCargado = false;
-let estadisticas = { txt: 0, pdf: 0, chunks: 0 };
 
 // Inicializar la aplicación
 function init() {
@@ -45,14 +44,11 @@ function init() {
         elements.topKValue.textContent = e.target.value;
     });
 
-    // Event listener para cargar documentos
+    // Event listeners para botones
     elements.btnCargar.addEventListener('click', cargarDocumentos);
-    
-    // Event listener para refrescar lista
     elements.btnRefrescar.addEventListener('click', listarDocumentos);
-
-    // Event listener para enviar pregunta
     elements.btnPreguntar.addEventListener('click', enviarPregunta);
+    
     elements.inputPregunta.addEventListener('keypress', (e) => {
         if (e.key === 'Enter' && !elements.btnPreguntar.disabled) {
             enviarPregunta();
@@ -75,13 +71,16 @@ async function verificarEstado() {
         const data = await response.json();
 
         if (data.listo) {
-            actualizarEstado(true, `Sistema activo y listo`, data.documentos);
+            actualizarEstado(true, 'Sistema activo y listo', data.documentos);
+            if (data.chunks) {
+                elements.statChunks.textContent = data.chunks;
+            }
         } else {
-            console.log('⚠️ Sistema no está listo');
+            actualizarEstado(false, 'Sistema no inicializado - Carga documentos primero', 0);
         }
     } catch (error) {
         console.log('⚠️ Backend no disponible:', error.message);
-        actualizarEstado(false, 'Backend no disponible - Verifica que esté ejecutándose', 0);
+        actualizarEstado(false, '❌ Backend no disponible - Ejecuta: python backend.py', 0);
     }
 }
 
@@ -117,7 +116,6 @@ async function listarDocumentos() {
         const data = await response.json();
 
         if (data.success && data.documentos.length > 0) {
-            // Separar por tipo
             const txtDocs = data.documentos.filter(d => d.endsWith('.txt'));
             const pdfDocs = data.documentos.filter(d => d.endsWith('.pdf'));
             
@@ -141,7 +139,7 @@ async function listarDocumentos() {
             }
             
             elements.listaDocumentos.innerHTML = html;
-            console.log(`✅ ${data.documentos.length} documentos encontrados (${txtDocs.length} TXT, ${pdfDocs.length} PDF)`);
+            console.log(`✅ ${data.documentos.length} documentos encontrados`);
         } else {
             elements.listaDocumentos.innerHTML = `
                 <p class="text-muted">📂 No hay documentos en la carpeta</p>
@@ -169,67 +167,53 @@ async function cargarDocumentos() {
             carpeta: elements.carpeta.value,
             tamano_chunk: parseInt(elements.tamanoChunk.value)
         };
-        
-        console.log('📤 Enviando solicitud:', payload);
 
         const response = await fetch(`${API_URL}/cargar`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
 
         const data = await response.json();
-        console.log('📥 Respuesta recibida:', data);
 
         if (data.success) {
             actualizarEstado(true, `✅ ${data.documentos} documentos procesados`, data.documentos);
             
-            // Actualizar estadísticas
             elements.statChunks.textContent = data.chunks;
             
-            // Mostrar información de carga
             elements.cargarInfo.style.display = 'block';
             elements.cargarInfo.className = 'info-box success';
             elements.cargarInfo.innerHTML = `
                 <strong>🎉 Sistema listo!</strong><br>
                 📚 Documentos: ${data.documentos}<br>
                 ✂️ Chunks: ${data.chunks}<br>
-                📁 Archivos: ${data.archivos.join(', ')}
+                ${data.gemini_habilitado ? '💎 Gemini: Habilitado' : '⚠️ Gemini: Deshabilitado'}
             `;
             
-            // Mensaje en el chat
             agregarMensajeBot(`
                 🎉 <strong>¡Sistema cargado exitosamente!</strong><br><br>
                 📊 <strong>Resumen:</strong><br>
                 • ${data.documentos} documentos procesados<br>
                 • ${data.chunks} chunks creados<br>
-                • Tamaño de chunk: ${payload.tamano_chunk} caracteres<br><br>
-                📁 <strong>Archivos cargados:</strong><br>
-                ${data.archivos.map(a => `• ${a}`).join('<br>')}<br><br>
-                ✅ Ya puedes hacer preguntas sobre estos documentos!
+                ${data.gemini_habilitado ? '• 💎 Gemini Flash activo<br>' : ''}
+                <br>✅ Ya puedes hacer preguntas!
             `);
             
-            // Refrescar lista
             listarDocumentos();
-            
         } else {
             mostrarError(data.error);
             elements.cargarInfo.style.display = 'block';
             elements.cargarInfo.className = 'info-box error';
             elements.cargarInfo.innerHTML = `<strong>❌ Error:</strong> ${data.error}`;
         }
-
     } catch (error) {
         console.error('❌ Error al cargar documentos:', error);
-        mostrarError('Error al conectar con el backend. ¿Está ejecutándose en http://localhost:5000?');
+        mostrarError('Error de conexión. Verifica que el backend esté ejecutándose.');
         elements.cargarInfo.style.display = 'block';
         elements.cargarInfo.className = 'info-box error';
         elements.cargarInfo.innerHTML = `
             <strong>❌ Error de conexión</strong><br>
-            Verifica que el backend esté ejecutándose:<br>
-            <code>python backend.py</code>
+            Ejecuta: <code>python backend.py</code>
         `;
     } finally {
         elements.btnCargar.disabled = false;
@@ -241,14 +225,9 @@ async function cargarDocumentos() {
 async function enviarPregunta() {
     const pregunta = elements.inputPregunta.value.trim();
 
-    if (!pregunta) {
-        return;
-    }
-
-    console.log('🔍 Procesando pregunta:', pregunta);
+    if (!pregunta) return;
 
     try {
-        // Mostrar pregunta del usuario
         agregarMensajeUsuario(pregunta);
         elements.inputPregunta.value = '';
         elements.inputPregunta.disabled = true;
@@ -258,31 +237,37 @@ async function enviarPregunta() {
 
         const response = await fetch(`${API_URL}/preguntar`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 pregunta: pregunta,
-                top_k: parseInt(elements.topK.value)
+                top_k: parseInt(elements.topK.value),
+                usar_gemini: true
             })
         });
 
         const data = await response.json();
-        console.log('📥 Respuesta:', data);
 
         if (data.success) {
-            // Mostrar chunks encontrados
-            mostrarChunks(data.chunks);
+            // Mostrar chunks
+            if (data.chunks && data.chunks.length > 0) {
+                mostrarChunks(data.chunks);
+            }
 
-            // Mostrar respuesta formateada
-            agregarMensajeBot(formatearRespuesta(data));
+            // Mostrar respuesta mejorada por Gemini
+            if (data.respuesta) {
+                const geminiUsado = data.estadisticas?.gemini_usado || false;
+                agregarMensajeBotGemini(data.respuesta, geminiUsado);
+                
+                if (geminiUsado && data.estadisticas?.tiempo_respuesta) {
+                    agregarIndicadorGemini(data.estadisticas.tiempo_respuesta);
+                }
+            }
         } else {
             mostrarError(data.error);
         }
-
     } catch (error) {
-        console.error('❌ Error al procesar pregunta:', error);
-        mostrarError('Error al procesar la pregunta. Verifica la conexión con el backend.');
+        console.error('❌ Error:', error);
+        mostrarError('Error al procesar la pregunta');
     } finally {
         elements.inputPregunta.disabled = false;
         elements.btnPreguntar.disabled = false;
@@ -291,32 +276,18 @@ async function enviarPregunta() {
     }
 }
 
-// Formatear respuesta
-function formatearRespuesta(data) {
-    const fuentesHtml = data.fuentes.map(f => {
-        const tipo = f.includes('PDF') ? '📕' : '📄';
-        return `${tipo} ${f}`;
-    }).join('<br>• ');
-    
-    return `
-        📊 <strong>Resultados de búsqueda:</strong><br><br>
-        ✅ Se encontraron <strong>${data.chunks.length} fragmentos relevantes</strong><br><br>
-        📁 <strong>Fuentes consultadas:</strong><br>
-        • ${fuentesHtml}<br><br>
-        👆 Los fragmentos más relevantes están disponibles arriba
-    `;
-}
-
 // Mostrar chunks relevantes
 function mostrarChunks(chunks) {
     elements.chunksContent.innerHTML = chunks.map((chunk, index) => {
         const tipo = chunk.fuente.includes('PDF') ? 'pdf' : 'txt';
         const icono = tipo === 'pdf' ? '📕' : '📄';
+        const relevancia = (chunk.relevancia * 100).toFixed(0);
         
         return `
             <div class="chunk-item ${tipo}">
                 <div class="chunk-header">
                     ${icono} <strong>Fragmento ${index + 1}</strong> - ${chunk.fuente}
+                    <span class="chunk-relevancia">${relevancia}%</span>
                 </div>
                 <div class="chunk-text">${chunk.texto}</div>
             </div>
@@ -324,28 +295,41 @@ function mostrarChunks(chunks) {
     }).join('');
 
     elements.chunksContainer.style.display = 'block';
-
-    // Scroll suave a los chunks
-    setTimeout(() => {
-        elements.chunksContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }, 100);
 }
 
-// Agregar mensaje del bot
-function agregarMensajeBot(texto) {
+// Agregar mensaje del bot mejorado por Gemini
+function agregarMensajeBotGemini(texto, geminiUsado = false) {
     const mensaje = document.createElement('div');
     mensaje.className = 'message bot';
     const timestamp = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+    
+    const badgeGemini = geminiUsado ? '<span class="badge gemini-badge">💎 Gemini Flash</span>' : '';
+    
     mensaje.innerHTML = `
         <div class="message-header">
             <span class="avatar">🤖</span>
             <strong>DocuBot</strong>
+            ${badgeGemini}
             <span class="timestamp">${timestamp}</span>
         </div>
-        <div class="message-content">${texto}</div>
+        <div class="message-content ${geminiUsado ? 'gemini-response' : ''}">${texto.replace(/\n/g, '<br>')}</div>
     `;
     elements.chatMessages.appendChild(mensaje);
     scrollToBottom();
+}
+
+// Indicador de Gemini
+function agregarIndicadorGemini(tiempo) {
+    const indicador = document.createElement('div');
+    indicador.className = 'gemini-indicator';
+    indicador.innerHTML = `💎 Respuesta mejorada con Gemini Flash (${tiempo}s)`;
+    elements.chatMessages.appendChild(indicador);
+    scrollToBottom();
+}
+
+// Agregar mensaje del bot
+function agregarMensajeBot(texto) {
+    agregarMensajeBotGemini(texto, false);
 }
 
 // Agregar mensaje del usuario

@@ -12,7 +12,7 @@ from langchain.agents import Tool
 from agentes.extractor_langchain import AgenteExtractorLangChain
 from agentes.buscador_langchain import AgenteBuscadorLangChain
 from agentes.respondedor_langchain import AgenteRespondedorLangChain
-
+from agentes.mejorador_respuestas import AgenteMejoradorGemini
 
 class SistemaMultiagenteDocuBot:
     """
@@ -22,7 +22,7 @@ class SistemaMultiagenteDocuBot:
     Usuario → Agente Extractor → Agente Buscador → Agente Respondedor → Usuario
     """
     
-    def __init__(self, carpeta_documentos="documentos"):
+    def __init__(self, carpeta_documentos="documentos", gemini_api_key=None):
         print("="*60)
         print("🤖 INICIALIZANDO SISTEMA MULTIAGENTE CON LANGCHAIN")
         print("="*60)
@@ -31,6 +31,7 @@ class SistemaMultiagenteDocuBot:
         self.agente_extractor = AgenteExtractorLangChain(carpeta_documentos)
         self.agente_buscador = AgenteBuscadorLangChain()
         self.agente_respondedor = AgenteRespondedorLangChain()
+        self.agente_gemini = AgenteMejoradorGemini(api_key=gemini_api_key)  # ← NUEVO
         
         # Estado del sistema
         self.documentos_cargados = False
@@ -42,6 +43,12 @@ class SistemaMultiagenteDocuBot:
         print(f"\n✅ Sistema inicializado con {len(self.system_tools)} herramientas")
         print(f"   • Agente Extractor: {len(self.agente_extractor.tools)} tools")
         print(f"   • Agente Buscador: {len(self.agente_buscador.tools)} tools")
+        print(f"   • Agente Respondedor: {len(self.agente_respondedor.tools)} tools")
+        print(f"   • Agente Gemini: {len(self.agente_gemini.tools)} tools")
+        if self.agente_gemini.habilitado:
+             print(f"   💎 Gemini Flash 2.0: ACTIVO")
+        else:
+             print(f"   ⚠️  Gemini: DESHABILITADO")
         print("="*60)
     
     def _crear_system_tools(self) -> List[Tool]:

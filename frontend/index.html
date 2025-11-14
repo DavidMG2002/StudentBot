@@ -3,160 +3,288 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DocuBot - Asistente Inteligente</title>
+    <title>DocuBot - Asistente Inteligente con IA</title>
     <link rel="stylesheet" href="style.css">
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
 </head>
 <body>
-    <div class="container">
-        <!-- Header -->
-        <header>
-            <div class="logo">
-                <span class="icon">📚</span>
-                <h1>DocuBot</h1>
-            </div>
-            <p class="subtitle">Asistente Inteligente de Documentos con IA (TXT & PDF)</p>
-        </header>
+    <div id="root"></div>
 
-        <!-- Status Bar -->
-        <div id="statusBar" class="status-bar">
-            <span id="statusIcon">⚠️</span>
-            <span id="statusText">Sistema no inicializado</span>
-            <span id="docCount" class="doc-count">0 documentos</span>
-        </div>
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+        const API_URL = 'http://localhost:5000/api';
 
-        <!-- Main Content -->
-        <div class="main-content">
-            <!-- Sidebar -->
-            <aside class="sidebar">
-                <div class="card">
-                    <h3>⚙️ Configuración</h3>
-                    
-                    <div class="form-group">
-                        <label>📁 Carpeta de documentos:</label>
-                        <input type="text" id="carpeta" value="documentos" class="input">
-                    </div>
+        function DocuBot() {
+            const [sistemaCargado, setSistemaCargado] = useState(false);
+            const [documentos, setDocumentos] = useState([]);
+            const [stats, setStats] = useState({ txt: 0, pdf: 0, chunks: 0 });
+            const [mensajes, setMensajes] = useState([{
+                tipo: 'bot',
+                contenido: '¡Hola! Soy DocuBot 💎, tu asistente inteligente.\n\nCarga documentos TXT o PDF y pregúntame sobre su contenido.\n\n🚀 Potenciado por Gemini Flash 1.5',
+                time: new Date()
+            }]);
+            const [pregunta, setPregunta] = useState('');
+            const [chunks, setChunks] = useState([]);
+            const [loading, setLoading] = useState({ cargar: false, preguntar: false });
+            const [config, setConfig] = useState({ carpeta: 'documentos', tamanoChunk: 300, topK: 3 });
+            const [error, setError] = useState(null);
+            const chatRef = useRef(null);
 
-                    <div class="form-group">
-                        <label>✂️ Tamaño de chunks:</label>
-                        <input type="range" id="tamanoChunk" min="100" max="500" value="300" class="slider">
-                        <span id="tamanoChunkValue">300</span> caracteres
-                    </div>
+            useEffect(() => {
+                verificarEstado();
+                listarDocumentos();
+            }, []);
 
-                    <div class="form-group">
-                        <label>🔍 Resultados a buscar:</label>
-                        <input type="range" id="topK" min="1" max="5" value="3" class="slider">
-                        <span id="topKValue">3</span> chunks
-                    </div>
+            useEffect(() => {
+                if (chatRef.current) {
+                    chatRef.current.scrollTop = chatRef.current.scrollHeight;
+                }
+            }, [mensajes]);
 
-                    <button id="btnCargar" class="btn btn-primary">
-                        🚀 Cargar Documentos
-                    </button>
+            const verificarEstado = async () => {
+                try {
+                    const res = await fetch(`${API_URL}/status`);
+                    const data = await res.json();
+                    if (data.listo) {
+                        setSistemaCargado(true);
+                        setStats({ txt: data.tipos?.TXT || 0, pdf: data.tipos?.PDF || 0, chunks: data.chunks || 0 });
+                    }
+                } catch (err) {
+                    setError('Backend no disponible. Ejecuta: python backend.py');
+                }
+            };
 
-                    <div id="loadingCargar" class="loading" style="display: none;">
-                        <div class="spinner"></div>
-                        Procesando documentos...
-                    </div>
+            const listarDocumentos = async () => {
+                try {
+                    const res = await fetch(`${API_URL}/documentos?carpeta=${config.carpeta}`);
+                    const data = await res.json();
+                    if (data.success) {
+                        setDocumentos(data.documentos || []);
+                        const txt = data.documentos.filter(d => d.endsWith('.txt')).length;
+                        const pdf = data.documentos.filter(d => d.endsWith('.pdf')).length;
+                        setStats(prev => ({ ...prev, txt, pdf }));
+                    }
+                } catch (err) {
+                    console.error(err);
+                }
+            };
 
-                    <div id="cargarInfo" class="info-box" style="display: none;"></div>
-                </div>
+            const cargarDocumentos = async () => {
+                setLoading({ ...loading, cargar: true });
+                setError(null);
+                try {
+                    const res = await fetch(`${API_URL}/cargar`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ carpeta: config.carpeta, tamano_chunk: config.tamanoChunk })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        setSistemaCargado(true);
+                        setStats({ txt: data.tipos?.TXT || 0, pdf: data.tipos?.PDF || 0, chunks: data.chunks || 0 });
+                        agregarMensaje('bot', `🎉 ¡Sistema cargado!\n\n📚 ${data.documentos} docs | ✂️ ${data.chunks} chunks\n${data.gemini_habilitado ? '💎 Gemini activo' : ''}\n\n✅ Haz tu pregunta!`);
+                        listarDocumentos();
+                    } else {
+                        setError(data.error);
+                    }
+                } catch (err) {
+                    setError('Error de conexión con el backend');
+                } finally {
+                    setLoading({ ...loading, cargar: false });
+                }
+            };
 
-                <div class="card">
-                    <h3>📄 Documentos Disponibles</h3>
-                    <div id="listaDocumentos" class="documentos-lista">
-                        <p class="text-muted">Cargando lista...</p>
-                    </div>
-                    <button id="btnRefrescar" class="btn btn-secondary-small">
-                        🔄 Refrescar Lista
-                    </button>
-                </div>
+            const enviarPregunta = async () => {
+                if (!pregunta.trim() || !sistemaCargado) return;
+                const p = pregunta;
+                agregarMensaje('usuario', p);
+                setPregunta('');
+                setChunks([]);
+                setLoading({ ...loading, preguntar: true });
 
-                <div class="card info">
-                    <h4>💡 Instrucciones</h4>
-                    <ol>
-                        <li>Coloca archivos <strong>.txt</strong> o <strong>.pdf</strong> en la carpeta <code>documentos/</code></li>
-                        <li>Haz clic en "Cargar Documentos"</li>
-                        <li>Espera a que se procesen los PDFs</li>
-                        <li>Escribe tu pregunta y presiona Enter</li>
-                    </ol>
-                </div>
+                try {
+                    const res = await fetch(`${API_URL}/preguntar`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ pregunta: p, top_k: config.topK, usar_gemini: true })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        setChunks(data.chunks || []);
+                        agregarMensaje('bot', data.respuesta || 'Sin resultados', data.estadisticas?.gemini_usado);
+                    } else {
+                        agregarMensaje('bot', `❌ ${data.error}`);
+                    }
+                } catch (err) {
+                    agregarMensaje('bot', '❌ Error al procesar la pregunta');
+                } finally {
+                    setLoading({ ...loading, preguntar: false });
+                }
+            };
 
-                <div class="card stats">
-                    <h4>📊 Estadísticas</h4>
-                    <div id="stats">
-                        <div class="stat-item">
-                            <span class="stat-label">Documentos TXT:</span>
-                            <span id="statTxt" class="stat-value">0</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-label">Documentos PDF:</span>
-                            <span id="statPdf" class="stat-value">0</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-label">Chunks totales:</span>
-                            <span id="statChunks" class="stat-value">0</span>
-                        </div>
-                    </div>
-                </div>
-            </aside>
+            const agregarMensaje = (tipo, contenido, gemini = false) => {
+                setMensajes(prev => [...prev, { tipo, contenido, gemini, time: new Date() }]);
+            };
 
-            <!-- Chat Area -->
-            <main class="chat-area">
-                <div class="card chat-card">
-                    <h3>💬 Conversación</h3>
-                    
-                    <div id="chatMessages" class="chat-messages">
-                        <div class="message bot">
-                            <div class="message-header">
-                                <span class="avatar">🤖</span>
-                                <strong>DocuBot</strong>
-                                <span class="timestamp"></span>
+            return (
+                <div className="container">
+                    <div className="header">
+                        <div className="logo">
+                            <div className="logo-icon">📚</div>
+                            <div>
+                                <h1>DocuBot</h1>
+                                <p>Asistente Inteligente con IA</p>
                             </div>
-                            <div class="message-content">
-                                ¡Hola! Soy DocuBot, tu asistente inteligente de documentos. 
-                                <br><br>
-                                Puedo leer y analizar archivos <strong>TXT</strong> y <strong>PDF</strong>. 
-                                Carga tus documentos en la carpeta indicada y haré preguntas sobre su contenido.
-                                <br><br>
-                                📚 <em>Soporto PDFs multipágina y documentos de texto</em>
-                            </div>
+                        </div>
+                        <div className={`status ${sistemaCargado ? 'active' : 'inactive'}`}>
+                            {sistemaCargado ? '✅ Activo' : '⚠️ Inactivo'}
                         </div>
                     </div>
 
-                    <div class="chat-input-container">
-                        <input 
-                            type="text" 
-                            id="inputPregunta" 
-                            placeholder="Escribe tu pregunta aquí... (Presiona Enter)" 
-                            class="input chat-input"
-                            disabled
-                        >
-                        <button id="btnPreguntar" class="btn btn-send" disabled>
-                            🔍 Buscar
-                        </button>
-                    </div>
+                    {error && (
+                        <div className="error">
+                            ❌ {error}
+                            <button onClick={() => setError(null)} className="close-btn">×</button>
+                        </div>
+                    )}
 
-                    <div id="loadingPregunta" class="loading" style="display: none;">
-                        <div class="spinner"></div>
-                        Procesando pregunta...
+                    <div className="main">
+                        <div>
+                            <div className="card">
+                                <h3>⚙️ Configuración</h3>
+                                <input
+                                    type="text"
+                                    className="input"
+                                    value={config.carpeta}
+                                    onChange={e => setConfig({...config, carpeta: e.target.value})}
+                                    placeholder="Carpeta"
+                                />
+                                <label className="label">✂️ Chunks: {config.tamanoChunk}</label>
+                                <input
+                                    type="range"
+                                    className="slider"
+                                    min="100"
+                                    max="500"
+                                    value={config.tamanoChunk}
+                                    onChange={e => setConfig({...config, tamanoChunk: Number(e.target.value)})}
+                                />
+                                <label className="label">🔍 Resultados: {config.topK}</label>
+                                <input
+                                    type="range"
+                                    className="slider"
+                                    min="1"
+                                    max="5"
+                                    value={config.topK}
+                                    onChange={e => setConfig({...config, topK: Number(e.target.value)})}
+                                />
+                                <button className="btn btn-primary" onClick={cargarDocumentos} disabled={loading.cargar}>
+                                    {loading.cargar ? (
+                                        <React.Fragment>
+                                            <div className="spinner"></div>
+                                            <span>Cargando...</span>
+                                        </React.Fragment>
+                                    ) : (
+                                        <React.Fragment>🚀 Cargar Documentos</React.Fragment>
+                                    )}
+                                </button>
+                            </div>
+
+                            <div className="card card-spacing">
+                                <h3>
+                                    📄 Documentos 
+                                    <button onClick={listarDocumentos} className="refresh-btn">🔄</button>
+                                </h3>
+                                <div className="doc-list">
+                                    {documentos.length === 0 ? (
+                                        <div className="empty">No hay documentos</div>
+                                    ) : (
+                                        documentos.map((doc, i) => (
+                                            <div key={i} className="doc-item">
+                                                {doc.endsWith('.pdf') ? '📕' : '📄'} {doc}
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="stats">
+                                <div className="stat-box">
+                                    <div className="stat-value">{stats.txt}</div>
+                                    <div className="stat-label">TXT</div>
+                                </div>
+                                <div className="stat-box">
+                                    <div className="stat-value">{stats.pdf}</div>
+                                    <div className="stat-label">PDF</div>
+                                </div>
+                                <div className="stat-box">
+                                    <div className="stat-value">{stats.chunks}</div>
+                                    <div className="stat-label">Chunks</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div className="card chat-container">
+                                <div className="messages" ref={chatRef}>
+                                    {mensajes.map((msg, i) => (
+                                        <div key={i} className={`message ${msg.tipo}`}>
+                                            <div className="message-header">
+                                                {msg.tipo === 'bot' ? '🤖 Bot' : '👤 Tú'}
+                                                {msg.gemini && <span className="gemini-badge">✨ Gemini</span>}
+                                                <span className="timestamp">
+                                                    {msg.time.toLocaleTimeString('es-ES', {hour:'2-digit',minute:'2-digit'})}
+                                                </span>
+                                            </div>
+                                            {msg.contenido.split('\n').map((line, j) => (
+                                                <div key={j}>{line}</div>
+                                            ))}
+                                        </div>
+                                    ))}
+                                    {loading.preguntar && (
+                                        <div className="loading">
+                                            <div className="spinner"></div>
+                                            Procesando...
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="chat-input">
+                                    <input
+                                        type="text"
+                                        value={pregunta}
+                                        onChange={e => setPregunta(e.target.value)}
+                                        onKeyPress={e => e.key === 'Enter' && enviarPregunta()}
+                                        placeholder={sistemaCargado ? "Escribe tu pregunta..." : "Carga documentos primero..."}
+                                        disabled={!sistemaCargado}
+                                    />
+                                    <button onClick={enviarPregunta} disabled={!sistemaCargado || !pregunta.trim()}>
+                                        🔍 Buscar
+                                    </button>
+                                </div>
+                            </div>
+
+                            {chunks.length > 0 && (
+                                <div className="card chunks">
+                                    <h3>🔍 Información Encontrada</h3>
+                                    {chunks.map((chunk, i) => (
+                                        <div key={i} className="chunk">
+                                            <div className="chunk-header">
+                                                {chunk.fuente.includes('PDF') ? '📕' : '📄'} {chunk.fuente}
+                                                <span className="relevance">{(chunk.relevancia * 100).toFixed(0)}%</span>
+                                            </div>
+                                            <div className="chunk-text">{chunk.texto}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
+            );
+        }
 
-                <!-- Chunks Relevantes -->
-                <div id="chunksContainer" class="card chunks-card" style="display: none;">
-                    <h3>🔍 Información Encontrada</h3>
-                    <div id="chunksContent"></div>
-                </div>
-            </main>
-        </div>
-
-        <!-- Footer -->
-        <footer>
-            <p>🎓 Desarrollado para Tecnología en Desarrollo de Software</p>
-            <p class="text-muted">Arquitectura Multiagente • Sentence Transformers • FAISS • PyPDF2</p>
-            <p class="text-muted">Backend: Flask + Python | Frontend: HTML + CSS + JavaScript</p>
-        </footer>
-    </div>
-
-    <script src="script.js"></script>
+        ReactDOM.render(<DocuBot />, document.getElementById('root'));
+    </script>
 </body>
 </html>
