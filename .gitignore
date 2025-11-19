@@ -9,4 +9,8 @@ __pycache__/
 *.npy
 *.npz
 *.txt
+**/*.txt
 .DS_Store
+# Entorno
+.env
+*.env

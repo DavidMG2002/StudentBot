@@ -16,9 +16,9 @@ class AgenteRespondedorLangChain:
     """
     
     def __init__(self):
-        print("🤖 Agente Respondedor LangChain inicializado")
+        print("Agente Respondedor LangChain inicializado")
         self.tools = self._crear_tools()
-        print(f"   🔧 Tools: {len(self.tools)}")
+        print(f"Tools: {len(self.tools)}")
     
     def _crear_tools(self) -> List[Tool]:
         """Crea las herramientas (tools) del agente"""
@@ -56,11 +56,11 @@ class AgenteRespondedorLangChain:
             # Parsear contexto (formato: pregunta|||chunks_json)
             partes = contexto.split('|||')
             if len(partes) < 2:
-                return "❌ Formato: pregunta|||chunks_json"
+                return "|X| Formato: pregunta|||chunks_json"
             
-            return f"✅ Respuesta generada basada en {len(partes[1])} caracteres de contexto"
+            return f"✓ Respuesta generada basada en {len(partes[1])} caracteres de contexto"
         except Exception as e:
-            return f"❌ Error: {str(e)}"
+            return f"|X| Error: {str(e)}"
     
     def _extraer_oraciones_tool(self, datos: str) -> str:
         """Tool: Extrae oraciones relevantes"""
@@ -68,16 +68,16 @@ class AgenteRespondedorLangChain:
             # Formato: texto|||pregunta|||max_oraciones
             partes = datos.split('|||')
             if len(partes) < 2:
-                return "❌ Formato: texto|||pregunta|||max_oraciones"
+                return "|X| Formato: texto|||pregunta|||max_oraciones"
             
             texto = partes[0]
             pregunta = partes[1]
             max_oraciones = int(partes[2]) if len(partes) > 2 else 3
             
             resultado = self.extraer_oraciones_relevantes(texto, pregunta, max_oraciones)
-            return f"✅ {len(resultado)} caracteres extraídos"
+            return f"✓ {len(resultado)} caracteres extraídos"
         except Exception as e:
-            return f"❌ Error: {str(e)}"
+            return f"|X| Error: {str(e)}"
     
     def _calcular_confianza_tool(self, scores: str) -> str:
         """Tool: Calcula confianza"""
@@ -86,9 +86,9 @@ class AgenteRespondedorLangChain:
             valores = [float(s.strip()) for s in scores.split(',')]
             promedio = sum(valores) / len(valores)
             _, nivel = self._categorizar_confianza(promedio)
-            return f"✅ Confianza: {nivel} ({promedio:.2%})"
+            return f"✓ Confianza: {nivel} ({promedio:.2%})"
         except Exception as e:
-            return f"❌ Error: {str(e)}"
+            return f"|X| Error: {str(e)}"
     
     def _crear_resumen_tool(self, datos: str) -> str:
         """Tool: Crea resumen"""
@@ -97,18 +97,18 @@ class AgenteRespondedorLangChain:
             partes = datos.split('|||')
             num_chunks = int(partes[0]) if len(partes) > 0 else 0
             num_fuentes = int(partes[1]) if len(partes) > 1 else 0
-            return f"✅ Resumen: {num_chunks} fragmentos en {num_fuentes} fuente(s)"
+            return f"✓ Resumen: {num_chunks} fragmentos en {num_fuentes} fuente(s)"
         except Exception as e:
-            return f"❌ Error: {str(e)}"
+            return f"|X| Error: {str(e)}"
     
     def _formatear_respuesta_tool(self, texto: str) -> str:
         """Tool: Formatea respuesta con markdown"""
         try:
             # Aplicar formateo básico
             texto_formateado = texto.replace('\n', '\n\n')
-            return f"✅ Respuesta formateada: {len(texto_formateado)} caracteres"
+            return f"✓ Respuesta formateada: {len(texto_formateado)} caracteres"
         except Exception as e:
-            return f"❌ Error: {str(e)}"
+            return f"|X| Error: {str(e)}"
     
     def extraer_oraciones_relevantes(self, texto: str, pregunta: str, max_oraciones: int = 3) -> str:
         """
@@ -149,15 +149,15 @@ class AgenteRespondedorLangChain:
         Retorna: (icono, nivel)
         """
         if score >= 0.8:
-            return "🎯", "Muy Alta"
+            return "✓✓", "Muy Alta"
         elif score >= 0.6:
-            return "✅", "Alta"
+            return "✓", "Alta"
         elif score >= 0.4:
-            return "⚠️", "Media"
+            return "-O-", "Media"
         elif score >= 0.2:
-            return "❓", "Baja"
+            return "?", "Baja"
         else:
-            return "❌", "Muy Baja"
+            return "|X|", "Muy Baja"
     
     def calcular_confianza(self, chunks_relevantes: List[Dict]) -> Tuple[float, str]:
         """
@@ -186,13 +186,13 @@ class AgenteRespondedorLangChain:
     def _obtener_icono_confianza(self, nivel: str) -> str:
         """Retorna emoji según nivel de confianza"""
         iconos = {
-            "Muy Alta": "🎯",
-            "Alta": "✅",
-            "Media": "⚠️",
-            "Baja": "❓",
-            "Muy Baja": "❌"
+            "Muy Alta": "✓✓",
+            "Alta": "✓",
+            "Media": "-O-",
+            "Baja": "?",
+            "Muy Baja": "|X|"
         }
-        return iconos.get(nivel, "❓")
+        return iconos.get(nivel, "?")
     
     def generar_respuesta_precisa(self, pregunta: str, chunks_relevantes: List[Dict]) -> str:
         """
@@ -224,7 +224,7 @@ class AgenteRespondedorLangChain:
         respuesta_partes.append("───────────────────────────────\n\n")
         
         # Información encontrada
-        respuesta_partes.append("📚 **Información Relevante:**\n\n")
+        respuesta_partes.append("**Información Relevante:**\n\n")
         
         for fuente, chunks in por_fuente.items():
             respuesta_partes.append(f"**📄 {fuente}**\n\n")
@@ -253,7 +253,7 @@ class AgenteRespondedorLangChain:
         # Tool 4: Formatear respuesta final
         respuesta = "".join(respuesta_partes)
         
-        print(f"✅ Respuesta generada (Confianza: {confianza_nivel})")
+        print(f"✓ Respuesta generada (Confianza: {confianza_nivel})")
         return respuesta
     
     def generar_respuesta(self, pregunta: str, chunks_relevantes: List[Dict]) -> str:
@@ -278,7 +278,7 @@ class AgenteRespondedorLangChain:
                 metodos_extraccion[metodo] = metodos_extraccion.get(metodo, 0) + 1
         
         resumen_partes = []
-        resumen_partes.append("💡 **Resumen:**\n\n")
+        resumen_partes.append(" **Resumen:**\n\n")
         resumen_partes.append(f"• Se encontraron **{total_chunks} fragmentos relevantes** ")
         resumen_partes.append(f"en **{total_fuentes} documento(s)**\n")
         
@@ -303,7 +303,7 @@ class AgenteRespondedorLangChain:
     def _respuesta_no_encontrada(self) -> str:
         """Respuesta cuando no se encuentra información"""
         return """
-❌ **No se encontró información relevante**
+|X| **No se encontró información relevante**
 
 Lo siento, no pude encontrar información que responda a tu pregunta en los documentos cargados.
 
@@ -347,7 +347,7 @@ Lo siento, no pude encontrar información que responda a tu pregunta en los docu
             return self._respuesta_no_encontrada()
         
         respuesta_partes = []
-        respuesta_partes.append("# 📊 Análisis Detallado\n\n")
+        respuesta_partes.append("# Análisis Detallado\n\n")
         respuesta_partes.append(f"**Pregunta:** {pregunta}\n\n")
         
         # Confianza
@@ -384,7 +384,7 @@ Lo siento, no pude encontrar información que responda a tu pregunta en los docu
         NOTA: Requiere integración con LangChain LLM chains
         """
         if not api_key:
-            print("⚠️  No se proporcionó API key. Usando respuesta estructurada.")
+            print("|X|  No se proporcionó API key. Usando respuesta estructurada.")
             return self.generar_respuesta_precisa(pregunta, chunks_relevantes)
         
         # Aquí se integraría con LangChain LLM
@@ -408,9 +408,8 @@ Lo siento, no pude encontrar información que responda a tu pregunta en los docu
     
     def describir_tools(self):
         """Describe las herramientas del agente"""
-        print("\n🔧 TOOLS DEL AGENTE RESPONDEDOR:")
-        print("="*60)
+        print("TOOLS DEL AGENTE RESPONDEDOR:")
+        
         for tool in self.tools:
-            print(f"\n📌 {tool.name}")
+            print("{tool.name}")
             print(f"   Descripción: {tool.description}")
-        print("="*60 + "\n")

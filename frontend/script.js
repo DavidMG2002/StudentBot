@@ -33,7 +33,7 @@ let sistemaCargado = false;
 
 // Inicializar la aplicación
 function init() {
-    console.log('🚀 Iniciando DocuBot Frontend...');
+    console.log('Iniciando StudentBot Frontend...');
     
     // Event listeners para sliders
     elements.tamanoChunk.addEventListener('input', (e) => {
@@ -61,7 +61,7 @@ function init() {
     // Verificar estado del sistema
     verificarEstado();
     
-    console.log('✅ Frontend inicializado');
+    console.log('✓ Frontend inicializado');
 }
 
 // Verificar estado del backend
@@ -80,7 +80,7 @@ async function verificarEstado() {
         }
     } catch (error) {
         console.log('⚠️ Backend no disponible:', error.message);
-        actualizarEstado(false, '❌ Backend no disponible - Ejecuta: python backend.py', 0);
+        actualizarEstado(false, '|X| Backend no disponible - Ejecuta: python backend.py', 0);
     }
 }
 
@@ -90,13 +90,13 @@ function actualizarEstado(listo, mensaje, numDocs = 0) {
     
     if (listo) {
         elements.statusBar.className = 'status-bar success';
-        elements.statusIcon.textContent = '✅';
+        elements.statusIcon.textContent = '✓';
         elements.inputPregunta.disabled = false;
         elements.btnPreguntar.disabled = false;
         elements.inputPregunta.placeholder = 'Escribe tu pregunta aquí... (Presiona Enter)';
     } else {
         elements.statusBar.className = 'status-bar';
-        elements.statusIcon.textContent = '⚠️';
+        elements.statusIcon.textContent = '|X|';
         elements.inputPregunta.disabled = true;
         elements.btnPreguntar.disabled = true;
         elements.inputPregunta.placeholder = 'Carga documentos primero...';
@@ -108,7 +108,7 @@ function actualizarEstado(listo, mensaje, numDocs = 0) {
 
 // Listar documentos disponibles
 async function listarDocumentos() {
-    console.log('📁 Listando documentos...');
+    console.log('Listando documentos...');
     
     try {
         const carpeta = elements.carpeta.value;
@@ -139,7 +139,7 @@ async function listarDocumentos() {
             }
             
             elements.listaDocumentos.innerHTML = html;
-            console.log(`✅ ${data.documentos.length} documentos encontrados`);
+            console.log(`✓ ${data.documentos.length} documentos encontrados`);
         } else {
             elements.listaDocumentos.innerHTML = `
                 <p class="text-muted">📂 No hay documentos en la carpeta</p>
@@ -149,14 +149,14 @@ async function listarDocumentos() {
             elements.statPdf.textContent = '0';
         }
     } catch (error) {
-        console.error('❌ Error al listar documentos:', error);
-        elements.listaDocumentos.innerHTML = '<p class="text-muted">❌ Error al cargar lista</p>';
+        console.error('|X| Error al listar documentos:', error);
+        elements.listaDocumentos.innerHTML = '<p class="text-muted">|X| Error al cargar lista</p>';
     }
 }
 
 // Cargar documentos en el sistema
 async function cargarDocumentos() {
-    console.log('🔄 Iniciando carga de documentos...');
+    console.log('... Iniciando carga de documentos...');
     
     try {
         elements.btnCargar.disabled = true;
@@ -177,26 +177,26 @@ async function cargarDocumentos() {
         const data = await response.json();
 
         if (data.success) {
-            actualizarEstado(true, `✅ ${data.documentos} documentos procesados`, data.documentos);
+            actualizarEstado(true, `✓ ${data.documentos} documentos procesados`, data.documentos);
             
             elements.statChunks.textContent = data.chunks;
             
             elements.cargarInfo.style.display = 'block';
             elements.cargarInfo.className = 'info-box success';
             elements.cargarInfo.innerHTML = `
-                <strong>🎉 Sistema listo!</strong><br>
+                <strong>✓✓ Sistema listo!</strong><br>
                 📚 Documentos: ${data.documentos}<br>
                 ✂️ Chunks: ${data.chunks}<br>
-                ${data.gemini_habilitado ? '💎 Gemini: Habilitado' : '⚠️ Gemini: Deshabilitado'}
+                ${data.gemini_habilitado ? '💎 Gemini: Habilitado' : '|X| Gemini: Deshabilitado'}
             `;
             
             agregarMensajeBot(`
-                🎉 <strong>¡Sistema cargado exitosamente!</strong><br><br>
-                📊 <strong>Resumen:</strong><br>
+                ✓✓ <strong>¡Sistema cargado exitosamente!</strong><br><br>
+                 <strong>Resumen:</strong><br>
                 • ${data.documentos} documentos procesados<br>
                 • ${data.chunks} chunks creados<br>
                 ${data.gemini_habilitado ? '• 💎 Gemini Flash activo<br>' : ''}
-                <br>✅ Ya puedes hacer preguntas!
+                <br>✓ Ya puedes hacer preguntas!
             `);
             
             listarDocumentos();
@@ -207,12 +207,12 @@ async function cargarDocumentos() {
             elements.cargarInfo.innerHTML = `<strong>❌ Error:</strong> ${data.error}`;
         }
     } catch (error) {
-        console.error('❌ Error al cargar documentos:', error);
+        console.error('|X| Error al cargar documentos:', error);
         mostrarError('Error de conexión. Verifica que el backend esté ejecutándose.');
         elements.cargarInfo.style.display = 'block';
         elements.cargarInfo.className = 'info-box error';
         elements.cargarInfo.innerHTML = `
-            <strong>❌ Error de conexión</strong><br>
+            <strong>|X| Error de conexión</strong><br>
             Ejecuta: <code>python backend.py</code>
         `;
     } finally {
@@ -266,7 +266,7 @@ async function enviarPregunta() {
             mostrarError(data.error);
         }
     } catch (error) {
-        console.error('❌ Error:', error);
+        console.error('|X| Error:', error);
         mostrarError('Error al procesar la pregunta');
     } finally {
         elements.inputPregunta.disabled = false;
@@ -307,7 +307,7 @@ function agregarMensajeBotGemini(texto, geminiUsado = false) {
     
     mensaje.innerHTML = `
         <div class="message-header">
-            <span class="avatar">🤖</span>
+            <span class="avatar">🧠</span>
             <strong>DocuBot</strong>
             ${badgeGemini}
             <span class="timestamp">${timestamp}</span>
@@ -322,7 +322,7 @@ function agregarMensajeBotGemini(texto, geminiUsado = false) {
 function agregarIndicadorGemini(tiempo) {
     const indicador = document.createElement('div');
     indicador.className = 'gemini-indicator';
-    indicador.innerHTML = `💎 Respuesta mejorada con Gemini Flash (${tiempo}s)`;
+    indicador.innerHTML = `✓✓ Respuesta mejorada con Gemini Flash (${tiempo}s)`;
     elements.chatMessages.appendChild(indicador);
     scrollToBottom();
 }
@@ -351,7 +351,7 @@ function agregarMensajeUsuario(texto) {
 
 // Mostrar error
 function mostrarError(mensaje) {
-    agregarMensajeBot(`❌ <strong>Error:</strong> ${mensaje}`);
+    agregarMensajeBot(`|X| <strong>Error:</strong> ${mensaje}`);
 }
 
 // Scroll al final del chat

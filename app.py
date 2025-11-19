@@ -2,7 +2,7 @@
 DocuBot - Asistente Inteligente de Documentos
 Aplicación principal con interfaz Streamlit
 """
-import streamlit as st
+'''import streamlit as st
 import sys
 import os
 
@@ -127,4 +127,4 @@ Fue creado por Guido van Rossum en 1991.
 
 # Footer
 st.markdown("---")
-st.markdown("*Proyecto académico - Tecnología en Desarrollo de Software*")
+st.markdown("*Proyecto académico - Tecnología en Desarrollo de Software*") '''

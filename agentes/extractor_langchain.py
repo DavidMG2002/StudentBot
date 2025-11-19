@@ -19,7 +19,7 @@ try:
     OCR_DISPONIBLE = True
 except:
     OCR_DISPONIBLE = False
-    print("⚠️  OCR no disponible. Instala: pip install pytesseract pdf2image Pillow")
+    print("|X| OCR no disponible. Instala: pip install pytesseract pdf2image Pillow")
 
 
 class AgenteExtractorLangChain:
@@ -33,11 +33,11 @@ class AgenteExtractorLangChain:
         self.documentos = []
         self.tools = self._crear_tools()
         
-        print("🤖 Agente Extractor LangChain inicializado")
-        print(f"   📁 Carpeta: {carpeta_documentos}")
-        print(f"   🔧 Tools: {len(self.tools)}")
+        print("Agente Extractor LangChain inicializado")
+        print(f"Carpeta: {carpeta_documentos}")
+        print(f"Tools: {len(self.tools)}")
         if OCR_DISPONIBLE:
-            print("   👁️  OCR: Activado (Tesseract)")
+            print("OCR: Activado (Tesseract)")
     
     def _crear_tools(self) -> List[Tool]:
         """Crea las herramientas (tools) del agente"""
@@ -69,9 +69,9 @@ class AgenteExtractorLangChain:
         try:
             with open(ruta, 'r', encoding='utf-8') as f:
                 contenido = f.read()
-            return f"✅ TXT leído: {len(contenido)} caracteres"
+            return f"TXT leído: {len(contenido)} caracteres"
         except Exception as e:
-            return f"❌ Error: {str(e)}"
+            return f"Error: {str(e)}"
     
     def _leer_pdf(self, ruta: str) -> str:
         """Tool: Lee un archivo PDF"""
@@ -87,14 +87,14 @@ class AgenteExtractorLangChain:
                     if texto:
                         texto_completo += f"\n[Página {num_pagina + 1}]\n{texto}"
             
-            return f"✅ PDF leído: {num_paginas} páginas, {len(texto_completo)} caracteres"
+            return f"PDF leído: {num_paginas} páginas, {len(texto_completo)} caracteres"
         except Exception as e:
-            return f"❌ Error: {str(e)}"
+            return f"Error: {str(e)}"
     
     def _aplicar_ocr(self, ruta: str) -> str:
         """Tool: Aplica OCR a un PDF escaneado"""
         if not OCR_DISPONIBLE:
-            return "❌ OCR no disponible. Instala pytesseract"
+            return "OCR no disponible. Instala pytesseract"
         
         try:
             # Convertir PDF a imágenes
@@ -106,36 +106,36 @@ class AgenteExtractorLangChain:
                 texto = pytesseract.image_to_string(imagen, lang='spa')
                 texto_completo += f"\n[Página {i} - OCR]\n{texto}"
             
-            return f"✅ OCR aplicado: {len(imagenes)} páginas, {len(texto_completo)} caracteres"
+            return f"OCR aplicado: {len(imagenes)} páginas, {len(texto_completo)} caracteres"
         except Exception as e:
-            return f"❌ Error OCR: {str(e)}"
+            return f"Error OCR: {str(e)}"
     
     def _listar_archivos(self, dummy: str = "") -> str:
         """Tool: Lista archivos en la carpeta"""
         if not os.path.exists(self.carpeta):
-            return "❌ Carpeta no existe"
+            return "Carpeta no existe"
         
         archivos_txt = [f for f in os.listdir(self.carpeta) if f.endswith('.txt')]
         archivos_pdf = [f for f in os.listdir(self.carpeta) if f.endswith('.pdf')]
         
-        return f"📁 {len(archivos_txt)} TXT, {len(archivos_pdf)} PDF"
+        return f"{len(archivos_txt)} TXT, {len(archivos_pdf)} PDF"
     
     def leer_documentos(self) -> List[Dict]:
         """
         Ejecuta el agente para leer todos los documentos
         Usa LangChain Tools para coordinar la lectura
         """
-        print("🔍 Agente Extractor: Leyendo documentos...")
+        print("Leyendo documentos...")
         
         if not os.path.exists(self.carpeta):
             os.makedirs(self.carpeta)
-            print(f"⚠️  Carpeta '{self.carpeta}' creada.")
+            print(f"Carpeta '{self.carpeta}' creada.")
             return []
         
         archivos_txt = [f for f in os.listdir(self.carpeta) if f.endswith('.txt')]
         archivos_pdf = [f for f in os.listdir(self.carpeta) if f.endswith('.pdf')]
         
-        print(f"   📁 Encontrados: {len(archivos_txt)} TXT, {len(archivos_pdf)} PDF")
+        print(f"Encontrados: {len(archivos_txt)} TXT, {len(archivos_pdf)} PDF")
         
         # Procesar TXT
         for archivo in archivos_txt[:20]:
@@ -153,7 +153,7 @@ class AgenteExtractorLangChain:
                         'metodo': 'lectura_directa'
                     })
             except Exception as e:
-                print(f"   ❌ Error: {e}")
+                print(f"|X|   Error: {e}")
         
         # Procesar PDF
         for archivo in archivos_pdf[:20]:
@@ -170,7 +170,7 @@ class AgenteExtractorLangChain:
                 texto = self._extraer_texto_ocr(ruta)
                 metodo = 'OCR'
             else:
-                print(f"   ✅ PDF: {archivo}")
+                print(f" ✓  PDF: {archivo}")
                 metodo = 'PyPDF2'
             
             if texto.strip():
@@ -181,7 +181,7 @@ class AgenteExtractorLangChain:
                     'metodo': metodo
                 })
         
-        print(f"✅ {len(self.documentos)} documentos leídos")
+        print(f"✓ {len(self.documentos)} documentos leídos")
         return self.documentos
     
     def _extraer_texto_pdf(self, ruta: str) -> str:
@@ -285,11 +285,11 @@ class AgenteExtractorLangChain:
                     'total_chunks': len(chunks_doc)
                 })
         
-        print(f"✅ {len(chunks)} chunks creados")
+        print(f"✓ {len(chunks)} chunks creados")
         
         if chunks:
             tamanos = [len(c['texto']) for c in chunks]
             promedio = sum(tamanos) / len(tamanos)
-            print(f"   📊 Tamaño promedio: {promedio:.0f} caracteres")
+            print(f"Tamaño promedio: {promedio:.0f} caracteres")
         
         return chunks

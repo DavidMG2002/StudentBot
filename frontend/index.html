@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DocuBot - Asistente Inteligente con IA</title>
+    <title>StudentBot - Asistente Inteligente con IA</title>
     <link rel="stylesheet" href="style.css">
     <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
     <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -16,13 +16,13 @@
         const { useState, useEffect, useRef } = React;
         const API_URL = 'http://localhost:5000/api';
 
-        function DocuBot() {
+        function StudentBot() {
             const [sistemaCargado, setSistemaCargado] = useState(false);
             const [documentos, setDocumentos] = useState([]);
             const [stats, setStats] = useState({ txt: 0, pdf: 0, chunks: 0 });
             const [mensajes, setMensajes] = useState([{
-                tipo: 'bot',
-                contenido: '¡Hola! Soy DocuBot 💎, tu asistente inteligente.\n\nCarga documentos TXT o PDF y pregúntame sobre su contenido.\n\n🚀 Potenciado por Gemini Flash 1.5',
+                tipo: 'StudentBot',
+                contenido: '¡Hola! Soy StudentBot 🫦, tu asistente inteligente.\n\nCarga documentos TXT o PDF y pregúntame sobre su contenido.\n\n🌐 Potenciado por Gemini Flash 2.5 >.0',
                 time: new Date()
             }]);
             const [pregunta, setPregunta] = useState('');
@@ -84,7 +84,7 @@
                     if (data.success) {
                         setSistemaCargado(true);
                         setStats({ txt: data.tipos?.TXT || 0, pdf: data.tipos?.PDF || 0, chunks: data.chunks || 0 });
-                        agregarMensaje('bot', `🎉 ¡Sistema cargado!\n\n📚 ${data.documentos} docs | ✂️ ${data.chunks} chunks\n${data.gemini_habilitado ? '💎 Gemini activo' : ''}\n\n✅ Haz tu pregunta!`);
+                        agregarMensaje('StudentBot', `🗹 ¡Sistema cargado!\n\n🕮 ${data.documentos} docs | ✂️ ${data.chunks} chunks\n${data.gemini_habilitado ? '✓✓ Gemini activo' : ''}\n\n✅ Haz tu pregunta!`);
                         listarDocumentos();
                     } else {
                         setError(data.error);
@@ -113,12 +113,12 @@
                     const data = await res.json();
                     if (data.success) {
                         setChunks(data.chunks || []);
-                        agregarMensaje('bot', data.respuesta || 'Sin resultados', data.estadisticas?.gemini_usado);
+                        agregarMensaje('StudentBot', data.respuesta || 'Sin resultados', data.estadisticas?.gemini_usado);
                     } else {
-                        agregarMensaje('bot', `❌ ${data.error}`);
+                        agregarMensaje('StudentBot', `|X| ${data.error}`);
                     }
                 } catch (err) {
-                    agregarMensaje('bot', '❌ Error al procesar la pregunta');
+                    agregarMensaje('StudentBot', '|X| Error al procesar la pregunta');
                 } finally {
                     setLoading({ ...loading, preguntar: false });
                 }
@@ -132,20 +132,20 @@
                 <div className="container">
                     <div className="header">
                         <div className="logo">
-                            <div className="logo-icon">📚</div>
+                            <div className="logo-icon">🧠</div>
                             <div>
-                                <h1>DocuBot</h1>
+                                <h1>StudentBot</h1>
                                 <p>Asistente Inteligente con IA</p>
                             </div>
                         </div>
                         <div className={`status ${sistemaCargado ? 'active' : 'inactive'}`}>
-                            {sistemaCargado ? '✅ Activo' : '⚠️ Inactivo'}
+                            {sistemaCargado ? '🗹 Activo' : '|X| Inactivo'}
                         </div>
                     </div>
 
                     {error && (
                         <div className="error">
-                            ❌ {error}
+                            |X| {error}
                             <button onClick={() => setError(null)} className="close-btn">×</button>
                         </div>
                     )}
@@ -186,7 +186,7 @@
                                             <span>Cargando...</span>
                                         </React.Fragment>
                                     ) : (
-                                        <React.Fragment>🚀 Cargar Documentos</React.Fragment>
+                                        <React.Fragment>🔝 Cargar Documentos</React.Fragment>
                                     )}
                                 </button>
                             </div>
@@ -231,8 +231,8 @@
                                     {mensajes.map((msg, i) => (
                                         <div key={i} className={`message ${msg.tipo}`}>
                                             <div className="message-header">
-                                                {msg.tipo === 'bot' ? '🤖 Bot' : '👤 Tú'}
-                                                {msg.gemini && <span className="gemini-badge">✨ Gemini</span>}
+                                                {msg.tipo === 'StudentBot' ? '🦿 StudentBot' : '👤 Tú'}
+                                                {msg.gemini && <span className="gemini-badge">🫦 Gemini</span>}
                                                 <span className="timestamp">
                                                     {msg.time.toLocaleTimeString('es-ES', {hour:'2-digit',minute:'2-digit'})}
                                                 </span>
@@ -284,7 +284,7 @@
             );
         }
 
-        ReactDOM.render(<DocuBot />, document.getElementById('root'));
+        ReactDOM.render(<StudentBot />, document.getElementById('root'));
     </script>
 </body>
 </html>

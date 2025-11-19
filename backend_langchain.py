@@ -1,20 +1,20 @@
 """
 Backend con LangChain + Gemini Flash 2.0
-API REST para DocuBot con mejoras de IA
+API REST para StudentBot con mejoras de IA
 """
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import time
 import os
-from sistema_langchain import SistemaMultiagenteDocuBot
+from sistema_langchain import SistemaMultiagenteStudentBot
                                        
 try:
     from dotenv import load_dotenv
     load_dotenv()
 except ImportError:
-    print("⚠️ python-dotenv no instalado, usando variables de entorno del sistema")
+    print("|X| python-dotenv no instalado, usando variables de entorno del sistema")
 
-from sistema_langchain import SistemaMultiagenteDocuBot
+from sistema_langchain import SistemaMultiagenteStudentBot
 
 app = Flask(__name__)             
 CORS(app)
@@ -50,15 +50,15 @@ def cargar_documentos():
         tamano_chunk = data.get('tamano_chunk', 400)
         gemini_key = data.get('gemini_api_key', GEMINI_API_KEY)
         
-        print(f"\n{'='*60}")
-        print(f"📂 CARGANDO SISTEMA")
-        print(f"{'='*60}")
+        
+        print(f" CARGANDO SISTEMA")
+
         print(f"Carpeta: {carpeta}")
         print(f"Chunk size: {tamano_chunk}")
-        print(f"Gemini: {'✅ Habilitado' if gemini_key else '⚠️ Deshabilitado'}")
+        print(f"Gemini: {'✓ Habilitado' if gemini_key else '|X| Deshabilitado'}")
         
         # Crear sistema LangChain con Gemini
-        sistema_multiagente = SistemaMultiagenteDocuBot(
+        sistema_multiagente = SistemaMultiagenteStudentBot(
             carpeta_documentos=carpeta,
             gemini_api_key=gemini_key
         )
@@ -69,10 +69,10 @@ def cargar_documentos():
         if resultado['success']:
             resultado['tiempo_carga'] = round(time.time() - inicio, 2)
             resultado['gemini_habilitado'] = sistema_multiagente.agente_gemini.habilitado
-            resultado['mensaje'] = f"✅ Sistema LangChain + Gemini listo! {resultado['documentos']} docs"
+            resultado['mensaje'] = f"✓ Sistema LangChain + Gemini listo! {resultado['documentos']} docs"
             
-            print(f"\n✅ Sistema cargado en {resultado['tiempo_carga']}s")
-            print(f"{'='*60}\n")
+            print(f"✓ Sistema cargado en {resultado['tiempo_carga']}s")
+            
             
             return jsonify(resultado)
         else:
@@ -80,7 +80,7 @@ def cargar_documentos():
             
     except Exception as e:
         import traceback
-        print(f"\n❌ ERROR:")
+        print(f"|X| ERROR:")
         print(traceback.format_exc())
         return jsonify({'success': False, 'error': str(e)}), 500
 
@@ -107,11 +107,11 @@ def preguntar():
                 'error': 'Pregunta vacía'
             }), 400
         
-        print(f"\n{'='*60}")
-        print(f"❓ PREGUNTA: {pregunta}")
+       
+        print(f"? PREGUNTA: {pregunta}")
         print(f"🔍 Top-K: {top_k}")
-        print(f"💎 Gemini: {'Activado' if usar_gemini else 'Desactivado'}")
-        print(f"{'='*60}")
+        print(f" Gemini: {'✓ Activado' if usar_gemini else '|X| Desactivado'}")
+       
         
         # Buscar chunks relevantes
         chunks = sistema_multiagente.agente_buscador.buscar_relevantes(pregunta, top_k)
@@ -121,7 +121,7 @@ def preguntar():
         
         # Mejorar con Gemini si está habilitado
         if usar_gemini and sistema_multiagente.agente_gemini.habilitado:
-            print("\n💎 Mejorando respuesta con Gemini...")
+            print("✓✓ Mejorando respuesta con Gemini...")
             respuesta_final = sistema_multiagente.agente_gemini.mejorar_respuesta(
                 pregunta,
                 chunks,
@@ -143,7 +143,7 @@ def preguntar():
         
         tiempo_respuesta = time.time() - inicio
         
-        print(f"\n✅ Respuesta generada en {tiempo_respuesta:.2f}s")
+        print(f"\n✓ Respuesta generada en {tiempo_respuesta:.2f}s")
         print(f"{'='*60}\n")
         
         return jsonify({
@@ -161,7 +161,7 @@ def preguntar():
         
     except Exception as e:
         import traceback
-        print(f"\n❌ ERROR:")
+        print(f"|X| ERROR:")
         print(traceback.format_exc())
         return jsonify({'success': False, 'error': str(e)}), 500
 
@@ -236,20 +236,17 @@ def obtener_config():
     })
 
 if __name__ == '__main__':
-    print("\n" + "="*60)
-    print("🚀 BACKEND LANGCHAIN + GEMINI FLASH 2.0")
-    print("="*60)
-    print("✨ Sistema Multiagente Mejorado")
-    print("📡 API: http://localhost:5000")
+    print("BACKEND LANGCHAIN + GEMINI FLASH 2.0")
+    print("✓✓ Sistema Multiagente Mejorado")
+    print("0.< API: http://localhost:5000")
     print()
-    print("💎 Gemini Flash 2.0:")
+    print("✓ Gemini Flash 2.0:")
     if GEMINI_API_KEY:
-        print("   ✅ API Key detectada - Gemini HABILITADO")
-        print("   ⚡ Respuestas mejoradas con IA")
+        print("   ✓ API Key detectada - Gemini HABILITADO")
+        print("   ✓✓ Respuestas mejoradas con IA")
     else:
-        print("   ⚠️  Sin API Key - Gemini DESHABILITADO")
-        print("   ℹ️  Para habilitar: export GEMINI_API_KEY='tu-key'")
-        print("   ℹ️  O agregar en código: GEMINI_API_KEY = 'tu-key'")
-    print("="*60)
+        print("   |X| Sin API Key - Gemini DESHABILITADO")
+        print("    o-  Para habilitar: export GEMINI_API_KEY='tu-key'")
+        print("    o-  O agregar en código: GEMINI_API_KEY = 'tu-key'")
     print()
     app.run(debug=True, port=5000)

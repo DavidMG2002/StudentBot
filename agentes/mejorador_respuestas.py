@@ -13,7 +13,7 @@ class AgenteMejoradorGemini:
     """
     
     def __init__(self, api_key: str = None):
-        print("🤖 Agente Mejorador Gemini inicializando...")
+        print("Agente Mejorador Gemini inicializando...")
         
         self.api_key = api_key
         self.modelo = None
@@ -22,18 +22,18 @@ class AgenteMejoradorGemini:
         if api_key:
             try:
                 genai.configure(api_key=api_key)
-                self.modelo = genai.GenerativeModel('gemini-2.0-flash-exp')
+                self.modelo = genai.GenerativeModel('gemini-2.0-flash')
                 self.habilitado = True
-                print("   ✅ Gemini Flash 2.0 conectado")
-                print("   💎 Modo: Mejorador de Respuestas")
+                print("✓ Gemini Flash 2.0 conectado")
+                print("Modo: Mejorador de Respuestas")
             except Exception as e:
-                print(f"   ⚠️  Error al conectar Gemini: {e}")
-                print("   ℹ️  Sistema funcionará sin mejoras de Gemini")
+                print(f"   |X|  Error al conectar Gemini: {e}")
+                print("o- Sistema funcionará sin mejoras de Gemini")
         else:
-            print("   ℹ️  Sin API key - Gemini deshabilitado")
+            print("o- Sin API key - Gemini deshabilitado")
         
         self.tools = self._crear_tools()
-        print(f"   🔧 Tools: {len(self.tools)}")
+        print(f"Tools: {len(self.tools)}")
     
     def _crear_tools(self) -> List[Tool]:
         """Crea las herramientas del agente"""
@@ -59,19 +59,19 @@ class AgenteMejoradorGemini:
         """Tool: Mejora respuesta (wrapper para logging)"""
         if not self.habilitado:
             return "⚠️ Gemini no habilitado"
-        return "✅ Respuesta mejorada con Gemini"
+        return "✓ Respuesta mejorada con Gemini"
     
     def _generar_resumen_tool(self, texto: str) -> str:
         """Tool: Genera resumen"""
         if not self.habilitado:
             return "⚠️ Gemini no habilitado"
-        return "✅ Resumen generado"
+        return "✓ Resumen generado"
     
     def _responder_conversacional_tool(self, pregunta: str) -> str:
         """Tool: Respuesta conversacional"""
         if not self.habilitado:
             return "⚠️ Gemini no habilitado"
-        return "✅ Respuesta conversacional generada"
+        return "✓ Respuesta conversacional generada"
     
     def mejorar_respuesta(self, pregunta: str, chunks_relevantes: List[Dict], 
                          respuesta_base: str) -> str:
@@ -87,10 +87,10 @@ class AgenteMejoradorGemini:
             Respuesta mejorada en lenguaje natural
         """
         if not self.habilitado:
-            print("   ℹ️  Gemini deshabilitado - devolviendo respuesta base")
+            print("o- Gemini deshabilitado - devolviendo respuesta base")
             return respuesta_base
         
-        print("💎 Agente Gemini: Mejorando respuesta...")
+        print("Agente Gemini: Mejorando respuesta...")
         
         try:
             # Preparar contexto
@@ -103,13 +103,13 @@ class AgenteMejoradorGemini:
             response = self.modelo.generate_content(prompt)
             respuesta_mejorada = response.text
             
-            print(f"✅ Respuesta mejorada ({len(respuesta_mejorada)} caracteres)")
+            print(f"✓ Respuesta mejorada ({len(respuesta_mejorada)} caracteres)")
             
             return respuesta_mejorada
             
         except Exception as e:
-            print(f"⚠️  Error en Gemini: {e}")
-            print("   Devolviendo respuesta base")
+            print(f"|X| Error en Gemini: {e}")
+            print("o- Devolviendo respuesta base")
             return respuesta_base
     
     def _preparar_contexto(self, chunks: List[Dict]) -> str:
@@ -176,9 +176,9 @@ Esta información viene de tu documento de Emprendimiento.pdf."
             Resumen ejecutivo estructurado
         """
         if not self.habilitado:
-            return f"⚠️ Gemini deshabilitado - No se puede generar resumen de {documento_nombre}"
+            return f"|X| Gemini deshabilitado - No se puede generar resumen de {documento_nombre}"
         
-        print(f"💎 Agente Gemini: Generando resumen de {documento_nombre}...")
+        print(f"Agente Gemini: Generando resumen de {documento_nombre}...")
         
         try:
             # Preparar contenido
@@ -194,22 +194,22 @@ Esta información viene de tu documento de Emprendimiento.pdf."
 
 **GENERA UN RESUMEN CON ESTA ESTRUCTURA:**
 
-📊 RESUMEN: {documento_nombre}
+ RESUMEN: {documento_nombre}
 
-🎯 Idea Principal:
+ Idea Principal:
 [1-2 oraciones sobre el tema central]
 
-📌 Puntos Clave:
+ Puntos Clave:
 • [Punto importante 1]
 • [Punto importante 2]
 • [Punto importante 3]
 • [etc.]
 
-🔑 Conceptos Importantes:
+ Conceptos Importantes:
 - [Concepto 1 y breve explicación]
 - [Concepto 2 y breve explicación]
 
-💡 Conclusión:
+ Conclusión:
 [Síntesis final en 1-2 oraciones]
 
 **Genera el resumen ahora:**"""
@@ -217,13 +217,13 @@ Esta información viene de tu documento de Emprendimiento.pdf."
             response = self.modelo.generate_content(prompt)
             resumen = response.text
             
-            print(f"✅ Resumen generado ({len(resumen)} caracteres)")
+            print(f"✓ Resumen generado ({len(resumen)} caracteres)")
             
             return resumen
             
         except Exception as e:
-            print(f"⚠️  Error al generar resumen: {e}")
-            return f"❌ No se pudo generar resumen de {documento_nombre}"
+            print(f"|X| Error al generar resumen: {e}")
+            return f"|X| No se pudo generar resumen de {documento_nombre}"
     
     def responder_con_contexto(self, pregunta: str, chunks: List[Dict], 
                               historial: List[Dict] = None) -> str:
@@ -239,9 +239,9 @@ Esta información viene de tu documento de Emprendimiento.pdf."
             Respuesta contextualizada
         """
         if not self.habilitado:
-            return "⚠️ Gemini deshabilitado para modo conversacional"
+            return "|X| Gemini deshabilitado para modo conversacional"
         
-        print("💎 Agente Gemini: Respuesta conversacional...")
+        print("Agente Gemini: Respuesta conversacional...")
         
         try:
             contexto_docs = self._preparar_contexto(chunks)
@@ -269,12 +269,12 @@ Esta información viene de tu documento de Emprendimiento.pdf."
             response = self.modelo.generate_content(prompt)
             respuesta = response.text
             
-            print(f"✅ Respuesta conversacional generada")
+            print(f"✓ Respuesta conversacional generada")
             
             return respuesta
             
         except Exception as e:
-            print(f"⚠️  Error: {e}")
+            print(f"|X| Error: {e}")
             return "Lo siento, hubo un error al procesar tu pregunta."
     
     def _preparar_historial(self, historial: List[Dict]) -> str:

@@ -18,13 +18,13 @@ class AgenteBuscadorLangChain:
     """
     
     def __init__(self, modelo_nombre='paraphrase-multilingual-MiniLM-L12-v2'):
-        print("🤖 Agente Buscador LangChain: Cargando modelo...")
+        print("Agente Buscador LangChain: Cargando modelo...")
         
         try:
             self.modelo = SentenceTransformer(modelo_nombre)
-            print(f"   ✅ Modelo: {modelo_nombre}")
+            print(f" Modelo: {modelo_nombre}")
         except:
-            print("   ⚠️  Modelo multilingüe no disponible, usando fallback...")
+            print("Modelo multilingüe no disponible, usando fallback...")
             self.modelo = SentenceTransformer('paraphrase-MiniLM-L6-v2')
         
         self.index = None
@@ -62,24 +62,24 @@ class AgenteBuscadorLangChain:
         """Tool: Crea embedding de un texto"""
         try:
             embedding = self.modelo.encode([texto])
-            return f"✅ Embedding creado: dimensión {embedding.shape[1]}"
+            return f"Embedding creado: dimensión {embedding.shape[1]}"
         except Exception as e:
-            return f"❌ Error: {str(e)}"
+            return f" Error: {str(e)}"
     
     def _buscar_similar_tool(self, consulta: str) -> str:
         """Tool: Busca textos similares"""
         if self.index is None:
-            return "❌ Base vectorial no inicializada"
+            return " Error: Base vectorial no inicializada"
         
         resultados = self.buscar_relevantes(consulta, top_k=3)
-        return f"✅ {len(resultados)} resultados encontrados"
+        return f"{len(resultados)} resultados encontrados"
     
     def _calcular_similitud_tool(self, textos: str) -> str:
         """Tool: Calcula similitud entre dos textos (separados por '|||')"""
         try:
             partes = textos.split('|||')
             if len(partes) != 2:
-                return "❌ Formato: texto1|||texto2"
+                return "Formato: texto1|||texto2"
             
             emb1 = self.modelo.encode([partes[0]])
             emb2 = self.modelo.encode([partes[1]])
@@ -89,9 +89,9 @@ class AgenteBuscadorLangChain:
             faiss.normalize_L2(emb2.astype('float32'))
             similitud = np.dot(emb1[0], emb2[0])
             
-            return f"✅ Similitud: {similitud:.2%}"
+            return f"Similitud: {similitud:.2%}"
         except Exception as e:
-            return f"❌ Error: {str(e)}"
+            return f" Error: {str(e)}"
     
     def expandir_consulta(self, pregunta: str) -> str:
         """Tool: Expande y optimiza una consulta"""
@@ -103,7 +103,7 @@ class AgenteBuscadorLangChain:
         palabras_importantes = [p for p in palabras if p not in palabras_vacias and len(p) > 2]
         
         consulta_expandida = ' '.join(palabras_importantes)
-        print(f"   🔍 Consulta optimizada: '{consulta_expandida}'")
+        print(f"Consulta optimizada: '{consulta_expandida}'")
         
         return consulta_expandida
     
@@ -112,16 +112,16 @@ class AgenteBuscadorLangChain:
         Crea la base vectorial FAISS usando los chunks
         Implementa el requisito de "base de datos vectorial"
         """
-        print("🧮 Agente Buscador: Creando base vectorial FAISS...")
+        print("Agente Buscador: Creando base vectorial FAISS...")
         
         if not chunks:
-            print("⚠️  No hay chunks para procesar")
+            print("X No hay chunks para procesar")
             return
         
         self.chunks = chunks
         textos = [c['texto'] for c in chunks]
         
-        print(f"   📊 Procesando {len(textos)} chunks...")
+        print(f"Procesando {len(textos)} chunks...")
         
         # Crear embeddings (requisito: embeddings y similitud)
         embeddings = self.modelo.encode(
@@ -146,10 +146,10 @@ class AgenteBuscadorLangChain:
             tipo = chunk.get('tipo', 'TXT')
             tipos[tipo] = tipos.get(tipo, 0) + 1
         
-        print(f"✅ Base vectorial FAISS creada con {len(chunks)} vectores")
-        print(f"   📈 Distribución: {', '.join([f'{k}: {v}' for k, v in tipos.items()])}")
-        print(f"   🎯 Similitud: Coseno (Inner Product)")
-        print(f"   📐 Dimensión: {dimension}")
+        print(f"Base vectorial FAISS creada con {len(chunks)} vectores")
+        print(f"Distribución: {', '.join([f'{k}: {v}' for k, v in tipos.items()])}")
+        print(f"Similitud: Coseno (Inner Product)")
+        print(f"Dimensión: {dimension}")
     
     def calcular_relevancia_keywords(self, pregunta: str, chunk_texto: str) -> float:
         """Calcula relevancia basada en keywords"""
@@ -171,10 +171,10 @@ class AgenteBuscadorLangChain:
         Busca los chunks más similares usando similitud de coseno
         Implementa requisito: "comparar textos usando similitud del coseno"
         """
-        print(f"🔎 Agente Buscador: Buscando para '{pregunta[:50]}...'")
+        print(f"Agente Buscador: Buscando para '{pregunta[:50]}...'")
         
         if self.index is None or len(self.chunks) == 0:
-            print("⚠️  Base vectorial no inicializada")
+            print("X Base vectorial no inicializada")
             return []
         
         # Expansión de consulta (usa Tool)
@@ -224,7 +224,7 @@ class AgenteBuscadorLangChain:
         
         resultados_finales = resultados_filtrados[:top_k]
         
-        print(f"✅ {len(resultados_finales)} chunks relevantes encontrados")
+        print(f"{len(resultados_finales)} chunks relevantes encontrados")
         for i, r in enumerate(resultados_finales, 1):
             print(f"   {i}. {r['fuente']} - Score: {r['relevancia']:.3f} "
                   f"(Sem: {r['score_semantico']:.3f}, KW: {r['score_keywords']:.3f})")

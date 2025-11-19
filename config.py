@@ -129,12 +129,12 @@ LIMITE_CHARS_PDF = 500000  # 500K caracteres
 # ==========================================
 
 MENSAJE_BIENVENIDA = """
-¡Hola! Soy DocuBot, tu asistente inteligente de documentos.
+¡Hola! Soy Studentbot, tu asistente inteligente de documentos.
 
 Puedo leer y analizar archivos TXT y PDF.
 Carga tus documentos y haré preguntas sobre su contenido.
 
-✨ Ahora con MAYOR PRECISIÓN:
+ Ahora con MAYOR PRECISIÓN:
 • Modelo multilingüe optimizado para español
 • Búsqueda semántica avanzada
 • Respuestas con indicador de confianza
@@ -142,7 +142,7 @@ Carga tus documentos y haré preguntas sobre su contenido.
 """
 
 MENSAJE_SIN_DOCUMENTOS = """
-📂 No hay documentos cargados.
+ No hay documentos cargados.
 
 Para comenzar:
 1. Coloca archivos .txt o .pdf en la carpeta 'documentos/'
@@ -152,7 +152,7 @@ Para comenzar:
 """
 
 MENSAJE_ERROR_BACKEND = """
-❌ No se pudo conectar con el backend.
+|X| No se pudo conectar con el backend.
 
 Asegúrate de que el servidor esté ejecutándose:
 python backend.py
