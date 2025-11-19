@@ -1,128 +1,220 @@
-# StudentBot — Asistente Inteligente de Documentos
+StudentBot 📚
+Sistema multiagente de análisis de documentos que utiliza LangChain, FAISS y Gemini Flash 2.0 para responder preguntas sobre archivos TXT y PDF mediante búsqueda semántica avanzada.
+ ¿Qué es StudentBot?
+StudentBot es un asistente inteligente que:
 
-Proyecto multiagente que permite cargar, indexar y consultar documentos (TXT / PDF) usando LangChain, FAISS y un módulo opcional de mejora de respuestas con Gemini.
+Lee y procesa documentos TXT y PDF (incluye OCR para PDF escaneados)
+Crea una base de conocimiento vectorial con FAISS
+Responde preguntas usando búsqueda semántica con incrustaciones multilingües
+Mejora respuestas con IA generativa (Gemini Flash 2.0)
+Arquitectura multiagente con LangChain
 
-## Contenido del repositorio
-- [backend_langchain.py](backend_langchain.py) — API REST y orquestador del backend  
-- [sistema_langchain.py](sistema_langchain.py) — Orquestador principal: [`sistema_langchain.SistemaMultiagenteDocuBot`](sistema_langchain.py)  
-- Agentes:
-  - [`agentes.extractor_langchain.AgenteExtractorLangChain`](agentes/extractor_langchain.py) — Lectura y creación de chunks  
-  - [`agentes.buscador_langchain.AgenteBuscadorLangChain`](agentes/buscador_langchain.py) — Embeddings, FAISS y búsqueda  
-  - [`agentes.respondedor_langchain.AgenteRespondedorLangChain`](agentes/respondedor_langchain.py) — Generación de respuestas y cálculo de confianza  
-  - [`agentes.mejorador_respuestas.AgenteMejoradorGemini`](agentes/mejorador_respuestas.py) — Mejora las respuestas con Gemini (opcional)  
-- Frontend estático: [frontend/index.html](frontend/index.html), [frontend/script.js](frontend/script.js), [frontend/style.css](frontend/style.css)  
-- Configuración: [config.py](config.py), [.env](.env)  
-- Tests / utilidades: [test_langchain.py](test_langchain.py)  
-- Interfaz Streamlit: [app.py](app.py)  
-- Dependencias: [requirements.txt](requirements.txt)
+Arquitectura Multiagente
+El sistema está compuesto por 4 agentes especializados:
 
----
+Agente Extractor : Lee documentos y crea trozos inteligentes
+Agente Buscador : Genera incrustaciones y busca por similitud de coseno
+Agente Respondedor : Genera respuestas con indicadores de confianza
+Agente Mejorador (Gemini) : Transforma respuestas a lenguaje natural
 
-## Requisitos
-- Python 3.8+  
-- Recomendado: crear un entorno virtual (venv)
-- Instalar dependencias:
-```sh
-python -m venv .venv
+ Requisitos previos
+
+Python 3.10+
+pepita
+(Opcional) Tesseract OCR para archivos PDF escaneados
+(Opcional) API Key de Google Gemini para respuestas mejoradas
+
+ Instalación
+
+ 1. Clonar el repositorio
+
+git clone <tu-repo>
+cd studentbot
+
+2. Crear entorno virtual
+
+python -m venv venv
+
 # Windows
-.venv\Scripts\activate
-# macOS / Linux
-source .venv/bin/activate
+venv\Scripts\activate
+
+# Linux/Mac
+source venv/bin/activate
+
+3. Instalar dependencias
 
 pip install -r requirements.txt
-```
 
-(Archivo: [requirements.txt](requirements.txt))
+4. (Opcional) Instalar Tesseract para OCR
+Windows:
 
----
+Descargar de: https://github.com/UB-Mannheim/tesseract/wiki
+Agregar al PATH
 
-## Configuración (Gemini API)
-- Copia `.env` si es necesario y añade tu API key de Gemini:
-  - Edita [.env](.env) y establece `GEMINI_API_KEY=tu_key` o exporta la variable de entorno.
-- Si no se proporciona key, el sistema funciona sin la mejora Gemini (modo degradado).
+Linux:
 
----
+sudo apt-get install tesseract-ocr tesseract-ocr-spa
 
-## Ejecutar el backend (API)
-1. Iniciar la API REST (Flask):
-```sh
+Impermeable:
+
+brew install tesseract tesseract-lang
+
+5. (Opcional) Configurar Géminis
+Crear archivo .enven la raíz:
+
+GEMINI_API_KEY=tu_api_key_aqui
+
+Obtenga su clave API en: https://makersuite.google.com/app/apikey
+
+📖 Uso
+Modo 1: API REST (Backend)
+
+Iniciar servidor
+
 python backend_langchain.py
+
+El servidor estará disponible enhttp://localhost:5000
+Puntos de conexión disponibles
+
+Cargar documentos:
+
+POST /api/cargar
+{
+  "carpeta": "documentos",
+  "tamano_chunk": 400,
+  "gemini_api_key": "opcional"
+}
+
+Hacer pregunta:
+
+POST /api/preguntar
+{
+  "pregunta": "¿Qué es el emprendimiento?",
+  "top_k": 3,
+  "usar_gemini": true
+}
+
+Estado del sistema:
+
+POST /api/resumen
+{
+  "documento": "nombre_documento.pdf"
+}
+
+Modo 2: Interfaz Web (Frontend)
+Iniciar frontend
+
+cd frontend
+# Abrir index.html en navegador
+# O usar servidor local:
+python -m http.server 8000
+
+Modo 3: Script Directo
+
+from sistema_langchain import SistemaMultiagenteStudentBot
+
+# Crear sistema
+sistema = SistemaMultiagenteStudentBot(
+    carpeta_documentos="documentos",
+    gemini_api_key="tu_key_opcional"
+)
+
+# Cargar documentos
+resultado = sistema.cargar_documentos(tamano_chunk=400)
+print(f"✓ {resultado['chunks']} chunks creados")
+
+# Hacer pregunta
+respuesta = sistema.procesar_pregunta("¿Qué es el emprendimiento?")
+print(respuesta)
 ```
-- La API queda disponible en: http://localhost:5000  
-- Endpoints principales:
-  - GET /api/status → estado del sistema
-  - POST /api/cargar → carga e indexa documentos
-  - POST /api/preguntar → hacer consultas sobre documentos
-  - POST /api/resumen → generar resumen (requiere Gemini)
 
-(Backend implementado en [backend_langchain.py](backend_langchain.py))
-
-Ejemplo CURL:
-```sh
-curl http://localhost:5000/api/status
+## 📁 Estructura del Proyecto
 ```
+studentbot/
+├── agentes/
+│   ├── extractor_langchain.py      # Agente 1: Lectura de docs
+│   ├── buscador_langchain.py       # Agente 2: Búsqueda vectorial
+│   ├── respondedor_langchain.py    # Agente 3: Generación de respuestas
+│   └── mejorador_respuestas.py     # Agente 4: Mejora con Gemini
+├── documentos/                      # Carpeta para TXT y PDF
+├── frontend/
+│   ├── index.html                   # Interfaz web
+│   ├── script.js                    # Lógica del cliente
+│   └── style.css                    # Estilos
+├── sistema_langchain.py             # Orquestador multiagente
+├── backend_langchain.py             # API REST con Flask
+├── config.py                        # Configuración del sistema
+├── requirements.txt                 # Dependencias
+└── README.md                        # Este archivo
 
-Cargar documentos (ejemplo):
-```sh
-curl -X POST http://localhost:5000/api/cargar \
-  -H "Content-Type: application/json" \
-  -d '{"carpeta":"documentos","tamano_chunk":400}'
-```
+ Configuración avanzada
+Editar config.pypara:
 
-Preguntar:
-```sh
-curl -X POST http://localhost:5000/api/preguntar \
-  -H "Content-Type: application/json" \
-  -d '{"pregunta":"¿De qué tratan los documentos?","top_k":3,"usar_gemini":true}'
-```
+Modelo de embeddings :MODELO_EMBEDDINGS
+Tamaño de chunks :TAMANO_CHUNK_DEFECTO
+Umbral de relevancia :UMBRAL_RELEVANCIA
+Resultados Top-K :TOP_K_DEFECTO
+Pesos de puntuación : PESO_SEMANTICO,PESO_KEYWORDS
 
----
+🎨 Características
 
-## Frontend (interfaz rápida)
-- Abrir [frontend/index.html](frontend/index.html) en el navegador.
-- El frontend envía peticiones a la API en http://localhost:5000/api (ver [frontend/script.js](frontend/script.js)).
+✅ Procesamiento de Documentos
 
-Alternativa UI con Streamlit:
-```sh
-streamlit run app.py
-```
-(Interfaz en [app.py](app.py))
+TXT con codificación UTF-8
+PDF nativos y escaneados (OCR)
+Chunks inteligentes que respetan párrafos
+Metadatos de fuente y método de extracción
 
----
+✅ Búsqueda Inteligente
 
-## Flujo de uso (resumen)
-1. Coloca archivos .txt / .pdf en la carpeta `documentos/`.
-2. Inicia el backend: `python backend_langchain.py`.
-3. Desde el frontend (o curl), llama a `/api/cargar` para procesar e indexar los documentos.
-4. Haz consultas con `/api/preguntar`. El flujo es:
-   - [`agentes.buscador_langchain.AgenteBuscadorLangChain`](agentes/buscador_langchain.py) busca chunks relevantes.
-   - [`agentes.respondedor_langchain.AgenteRespondedorLangChain`](agentes/respondedor_langchain.py) genera la respuesta base.
-   - Opcional: [`agentes.mejorador_respuestas.AgenteMejoradorGemini`](agentes/mejorador_respuestas.py) mejora la respuesta si Gemini está habilitado.
+Incrustaciones multilingües optimizadas para español.
+Similitud de coseno con FAISS
+Reposicionamiento de palabras clave
+Expansión automática de consultas
 
-El orquestador de alto nivel es [`sistema_langchain.SistemaMultiagenteDocuBot`](sistema_langchain.py).
+✅ Respuestas Contextualizadas
 
----
+Indicadores de confianza (Muy Alta, Alta, Media, Baja)
+Extracción de oraciones relevantes
+Fuentes citadas con puntuaciones
+Resúmenes ejecutivos
 
-## Pruebas
-- Ejecuta la suite de comprobación:
-```sh
-python test_langchain.py
-```
-(Archivo: [test_langchain.py](test_langchain.py))
+✅ Integración con IA Generativa
 
----
+Gemini Flash 2.0 para respuestas naturales
+Generación de resúmenes de documentos.
+Modo conversacional con historial
 
-## Buenas prácticas y notas
-- Limita el número de documentos grandes para evitar uso excesivo de memoria (ver [config.py](config.py)).  
-- Si trabajas con PDFs escaneados, instala Tesseract y dependencias para habilitar OCR (se revisa en [`agentes.extractor_langchain.AgenteExtractorLangChain`](agentes/extractor_langchain.py)).  
-- Para mejorar resultados en español, use el modelo multilingüe por defecto definido en [config.py](config.py).
+Solución de Problemas
+Error: "OCR no disponible"
 
----
+pip install pytesseract pdf2image Pillow
+# Instalar Tesseract (ver paso 4)
 
-## Resolución de problemas rápidos
-- "Backend no disponible": asegúrate de ejecutar `python backend_langchain.py` y que el puerto 5000 esté libre.
-- Errores con embeddings / FAISS: verifica que las dependencias de `sentence-transformers` y `faiss` se instalaron correctamente.
-- Gemini no mejora respuestas: confirma que `GEMINI_API_KEY` está presente en [.env](.env) o en variables de entorno.
+Error: "FAISS no encontrado"
 
----
+pip install faiss-cpu
 
+Error: "Error de la API de Gemini"
+
+Verificar clave API.
+Revisar variable de entornoGEMINI_API_KEY
+El sistema funciona sin Gemini (respuestas base)
+
+los documentos no se cargan
+
+Verificar: documentos/existe
+Los archivos deben ser .txt o .pdf
+Revisar los límites de lectura
+
+Ejemplo Completo
+
+Coloca tus PDF/TXT en una carpetadocumentos/
+Inicia backend:python backend_langchain.py
+Interfaz de usuario de Abre:frontend/index.html
+Haz clic en "Cargar mensajes"
+Escribe pregunta: "¿Qué tipos de emprendimiento existen?"
+Recibe respuesta con fuentes y nivel de confianza
+
+🤝 Contribuciones
+Para reportar errores o sugerir mejoras, abre un problema en el repositorio.
