@@ -1,63 +1,91 @@
-🎓 StudentBot
+StudentBot – Sistema Multi-Agente de Análisis de Documentos
 
-Sistema Multiagente de Análisis Inteligente de Documentos con LangChain, FAISS y Gemini Flash 2.0
+Sistema inteligente para procesamiento y análisis de documentos (TXT y PDF) mediante agentes especializados, búsqueda vectorial, OCR y generación de respuestas con IA.
 
-StudentBot es un asistente avanzado capaz de leer documentos TXT y PDF (incluidos escaneados), convertirlos en conocimiento estructurado y responder preguntas utilizando búsqueda semántica y modelos de IA generativa.
-
-¿Qué es StudentBot?
-
-StudentBot es un sistema inteligente que:
-
-📄 Lee y procesa documentos TXT y PDF
-
-🔍 Texto extra de PDF escaneado mediante OCR
-
-🧠 Construye una base de conocimiento vectorial con FAISS
-
-🔎 Realiza búsqueda semántica con incrustaciones multilingües
-
-🤖 Genera respuestas avanzadas usando Gemini Flash 2.0
-
-🧩 Utiliza una arquitectura multiagente optimizada con LangChain
-
-🧩 Arquitectura Multiagente
-
-El sistema está compuesto por 4 agentes especializados :
-
-1️⃣ Agente Extractor
-
-Lee documentos, realiza OCR y genera fragmentos inteligentes.
-
-2️⃣ Agente Buscador
-
-Crea incrustaciones y ejecuta búsquedas por similitud de coseno usando FAISS.
-
-3️⃣ Agente Respondedor
-
-Genera respuestas con puntuación de confianza y citas.
-
-4️⃣ Agente Mejorador (Géminis)
-
-Reescribe y optimiza respuestas para conversación natural.
-
-📦 Requisitos previos
+Pila Tecnológica
+Backend
 
 Python 3.10+
 
-Librería pepita
+LangChain (Gestión de agentes y cadenas)
 
-(Opcional) Tesseract OCR para archivos PDF escaneados
+FAISS (Vectorial base)
 
-(Opcional) Clave API de Google Gemini
+Google Gemini Flash 2.0 (Mejora de respuestas)
 
-⚙️ Instalación
+Flask (API REST)
+
+OCR Tesseract (opcional)
+
+pepita (Marco adicional utilizado en el proyecto)
+
+Interfaz
+
+HTML, CSS, JavaScript
+
+Servidor simple con http.server(modo local)
+
+Características
+
+4 agentes especializados (Extractor, Buscador, Respondedor, Mejorador)
+
+Procesamiento de documentos TXT y PDF (incluye OCR)
+
+Búsqueda semántica mediante incrustaciones multilingües
+
+Sistema de puntuación y nivel de confianza en respuestas
+
+Mejoras de lenguaje natural con Gemini Flash 2.0
+
+Arquitectura modular y escalable
+
+API REST + Interfaz Web Simple
+
+Soporte para análisis conversacional
+
+Arquitectura Multi-Agente
+1. Agente Extractor
+
+Lee documentos TXT y PDF
+
+Aplica OCR en PDFs escaneados
+
+Genera trozos inteligentes
+
+Extrae metadatos util
+
+2. Agente Buscador
+
+Convertir los trozos en incrustaciones
+
+transporta vectores en FAISS
+
+Calcula similitud de coseno
+
+Reordenar resultados por palabras clave
+
+3. Agente Respondedor
+
+Genera respuestas contextuales
+
+Añade nivel de confianza (Muy Alta, Alta, Media, Baja)
+
+Incluye citas y fuentes del documento.
+
+4. Agente Mejorador (Géminis)
+
+Reescribe las respuestas
+
+Mejora la claridad, coherencia y naturalidad.
+
+Genera resúmenes ejecutivos y explicaciones más limpias
+
+instalación
 1. Clonar el repositorio
-
 git clone <tu-repo>
 cd studentbot
 
 2. Crear entorno virtual
-
 python -m venv venv
 
 # Windows
@@ -67,56 +95,48 @@ venv\Scripts\activate
 source venv/bin/activate
 
 3. Instalar dependencias
-
 pip install -r requirements.txt
 
-4. (Opcional) Instalar Tesseract
+4. (Opcional) Instalar Tesseract para OCR
 
 Windows:
-Descargar desde:
 https://github.com/UB-Mannheim/tesseract/wiki
-
-Agregar al PATH.
 
 Linux:
 
 sudo apt-get install tesseract-ocr tesseract-ocr-spa
 
+
 Impermeable:
 
 brew install tesseract tesseract-lang
 
-5. (Opcional) Configurar Géminis
+5. Configurar clave de Gemini (opcional)
 
-Crear .enven la raíz:
+Crear archivo .env:
 
-GEMINI_API_KEY=tu_api_key_aqui
+GEMINI_API_KEY=tu_api_key
 
-Obtener clave API en:
-https://makersuite.google.com/app/apikey
+Uso
+API REST de Modo
 
-📖 Uso del Sistema
-🔌 Modo 1: API REST (Backend)
-
-Iniciar servidor
+Iniciar el backend:
 
 python backend_langchain.py
 
-Disponible en: http://localhost:5000
 
-Puntos de conexión disponibles
+El servidor estará disponible en:
 
-➤ Cargar documentos
+http://localhost:5000
 
+Cargar documentos
 POST /api/cargar
 {
   "carpeta": "documentos",
-  "tamano_chunk": 400,
-  "gemini_api_key": "opcional"
+  "tamano_chunk": 400
 }
 
-➤ Hacer pregunta
-
+Hacer una pregunta
 POST /api/preguntar
 {
   "pregunta": "¿Qué es el emprendimiento?",
@@ -124,40 +144,36 @@ POST /api/preguntar
   "usar_gemini": true
 }
 
-➤ Estado del sistema
-
+Estado del sistema
 POST /api/resumen
 {
-  "documento": "nombre_documento.pdf"
+  "documento": "archivo.pdf"
 }
 
-🌐 Modo 2: Interfaz Web
-
+Modo Interfaz Web
 cd frontend
 python -m http.server 8000
 
-Luego abrir en otro:
+
+ed:
 
 http://localhost:8000
 
-🐍 Modo 3: Script Directo
-
-
+Modo Script
 from sistema_langchain import SistemaMultiagenteStudentBot
 
 sistema = SistemaMultiagenteStudentBot(
     carpeta_documentos="documentos",
-    gemini_api_key="tu_key_opcional"
+    gemini_api_key="tu_key"
 )
 
 resultado = sistema.cargar_documentos(tamano_chunk=400)
-print(f"✓ {resultado['chunks']} chunks creados")
+print(resultado)
 
 respuesta = sistema.procesar_pregunta("¿Qué es el emprendimiento?")
 print(respuesta)
 
-📁 Estructura del Proyecto
-
+Estructura del Proyecto
 studentbot/
 ├── agentes/
 │   ├── extractor_langchain.py
@@ -175,94 +191,19 @@ studentbot/
 ├── requirements.txt
 └── README.md
 
-Configuración avanzada
-
-Editar config.pypara:
-
-MODELO_EMBEDDINGS
-
-TAMANO_CHUNK_DEFECTO
-
-UMBRAL_RELEVANCIA
-
-TOP_K_DEFECTO
-
-Pesos: PESO_SEMANTICO,PESO_KEYWORDS
-
-🎨 Características Destacadas
-📄 Procesamiento de Documentos
-
-Soporte para TXT y PDF (nativo + OCR)
-
-Respeto por párrafos y estructura
-
-Metadatos del origen
-
-🔍 Búsqueda Inteligente
-
-Incrustaciones multilingües
-
-FAISS + similitud de coseno
-
-Re-rankeado por palabras clave
-
-Expansión automática de consultas
-
-🧠 Respuestas Inteligentes
-
-Nivel de confianza: Muy Alta / Alta / Media / Baja
-
-Citas y porcentajes de relevancia
-
-Resúmenes ejecutivos
-
-🤖 Integración con IA Generativa
-
-Gemini Flash 2.0 para respuestas naturales
-
-Modo conversacional
-
-Mejora lingüística
-
-🛠️Solución de Problemas
-
-❌ OCR no disponible
-
+solución de at
+OCR no disponible
 pip install pytesseract pdf2image Pillow
 
-Revisar la instalación de Tesseract.
-
-❌ FAISS no encontrado
-
+FAISS no.
 pip install faiss-cpu
 
-❌ Error con la API de Gemini
+Error con Gemini
 
-Verificar clave API
+Revisar variableGEMINI_API_KEY
 
-Revisar variable de entorno
+El sistema puede funcionar sin Gemini
 
-El sistema funciona sin Géminis.
+Contribuciones
 
-🧪 Ejemplo Completo
-
-Colocar PDF/TXT en/documentos/
-
-Iniciar backend:
-
-python backend_langchain.py
-
-
-Cargar documentos
-
-Interrogador:
-
-¿Qué tipos de emprendimiento existen?
-
-
-Recibir respuesta con fuentes y nivel de confianza
-
-🤝 Contribuciones
-
-Para sugerencias o errores abre un problema en el repositorio.
-Las contribuciones son bienvenidas.
+Para sugerencias o mejoras, abra un número en el repositorio.
