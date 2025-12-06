@@ -11,8 +11,7 @@ from pathlib import Path
 
 # Importar módulos del sistema
 from sistema_langchain import SistemaMultiagenteStudentBot
-from database_mysql import DatabaseManagerMySQL as DatabaseManager
-from s3_manager import S3Manager
+from database import DatabaseManager, crear_backup
 
 try:
     from dotenv import load_dotenv
@@ -22,18 +21,7 @@ except ImportError:
 
 # Configuración
 app = Flask(__name__)
-CORS(app, resources={
-    r"/api/*": {
-        "origins": [
-            "http://3.216.119.237:8000",
-            "https://d3bdbj9xxi8k5x.cloudfront.net",
-            "https://k209jhcyw4.execute-api.us-east-1.amazonaws.com"  # Añade esta
-        ],
-        "methods": ["GET", "POST", "DELETE", "OPTIONS"],
-        "allow_headers": ["Content-Type"]
-    }
-})
-
+CORS(app)
 
 # Carpetas
 UPLOAD_FOLDER = 'documentos'
@@ -50,7 +38,6 @@ Path('backups').mkdir(exist_ok=True)
 # Sistema global
 sistema_multiagente = None
 db = DatabaseManager()
-s3_manager = S3Manager()
 
 # API Key de Gemini
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', None)
@@ -80,57 +67,6 @@ def status():
 
 @app.route('/api/upload', methods=['POST'])
 def upload_file():
-    """Endpoint de subida de archivos con S3"""
-    if 'file' not in request.files:
-        return jsonify({'error': 'No file part'}), 400
-    
-    file = request.files['file']
-    
-    if file.filename == '':
-        return jsonify({'error': 'No selected file'}), 400
-    
-    if not allowed_file(file.filename):
-        return jsonify({'error': 'Tipo de archivo no permitido'}), 400
-    
-    try:
-        filename = secure_filename(file.filename)
-        
-        # Guardar temporalmente en local
-        local_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(local_path)
-        file_size = os.path.getsize(local_path)
-        
-        # Subir a S3 si está habilitado
-        s3_url = None
-        if s3_manager.habilitado:
-            s3_url = s3_manager.upload_file(local_path, filename)
-            if s3_url:
-                print(f"✓ Archivo en S3: {s3_url}")
-        
-        # Registrar en BD
-        doc_id = db.registrar_documento(
-            nombre=filename,
-            ruta=local_path,
-            tipo=filename.rsplit('.', 1)[1].upper(),
-            tamano=file_size,
-            num_chunks=0,
-            metodo='upload',
-            ruta_s3=s3_url
-        )
-        
-        return jsonify({
-            'success': True,
-            'filename': filename,
-            'size': file_size,
-            'doc_id': doc_id,
-            's3_enabled': s3_manager.habilitado,
-            's3_url': s3_url
-        })
-        
-    except Exception as e:
-        print(f"❌ Error en upload: {e}")
-        return jsonify({'error': str(e)}), 500
-
     """
     Subida de archivos desde frontend
     NUEVO: Soporta múltiples archivos
@@ -513,5 +449,4 @@ if __name__ == '__main__':
     print("📁 Upload: Habilitado (10MB max)")
     print("=" * 60)
     
-    app.run(host='0.0.0.0', port=5000, debug=False)
-
+    app.run(debug=True, port=5000)
