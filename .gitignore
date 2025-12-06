@@ -14,3 +14,12 @@ __pycache__/
 # Entorno
 .env
 *.env
+notepad .gitignore
+```
+
+## Paso 2: Agrega estas líneas al .gitignore
+```
+# Database files
+database.py
+studentbot.db
+*.db
